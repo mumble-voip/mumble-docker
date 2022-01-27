@@ -1,9 +1,9 @@
 **Mumble** is a VOIP application which allows users to talk to each other via
 the same server. It uses a client-server architecture, and encrypts all
-communication to ensure user privacy. **mumble-server** is the name of the server
+communication to ensure user privacy. **Murmur** is the name of the server
 component within the Mumble project.[Learn More][mumble-wiki].
 
-`mumble-voip/mumble-server` enables you to easily run multiple (lightweight) mumble-server
+`mumble-voip/mumble-server` enables you to easily run multiple (lightweight) murmur
 instances on the same host.
 
 ## Getting started
@@ -16,13 +16,13 @@ installed.
 An image is available from the [Docker Hub][docker-hub-repo-url] registry, built
 automatically from this repository. It's easy to get started:
 
-```bash
+```text
 docker pull mumble-voip/mumble-server[:tag]
 ```
 
 You don't _need_ to specify a tag, but it's a good idea to so that you don't
 pull `latest` and risk getting different versions on different hosts. Versions
-are kept in line with the [releases from mumble-voip/mumble](https://github.com/mumble-voip/mumble/tags).
+are kept in line with the [releases from mumble-voip/mumble][vendor-releases].
 
 The examples throughout this document assume we are not using a tag for the sake
 of brevity. If you pull the image with a tag other than `latest`, you will need
@@ -59,55 +59,54 @@ docker run -d \
     mumble-voip/mumble-server[:tag]
 ```
 
-Here is a list of all options supported through environment variables.
-All variable are similar to [the official config](https://github.com/mumble-voip/mumble/blob/master/scripts/murmur.ini) (without the `MUMBLE_`prefix).  
+Here is a list of all options supported through environment variables:
 
 | Environment Variable | Default Value |
 | -------------------- | ------------- |
-| `MUMBLE_ALLOWHTML` | `true`|
-| `MUMBLE_ALLOWPING` | `true`|
-| `MUMBLE_AUTOBANATTEMPTS` | `10`    |
-| `MUMBLE_AUTOBANTIMEFRAME` | `120` |
-| `MUMBLE_AUTOBANTIME` | `300` |
-| `MUMBLE_BANDWIDTH` | `7200`|
-| `MUMBLE_CHANNELNAME` | `[ \\-=\\w\\#\\[\\]\\{\\}\\(\\)\\@\\|]+` |
-| `MUMBLE_DATABASE` | `/data/murmur.sqlite` |
-| `MUMBLE_DB_DRIVER` | `QSQLITE` |
-| `MUMBLE_DB_USERNAME` | `---` |
-| `MUMBLE_DB_PASSWORD` | `---` |
-| `MUMBLE_DEFAULTCHANNEL` | `---` |
-| `MUMBLE_ENABLESSL` | `0` |
-| `MUMBLE_ICE` | `tcp -h 127.0.0.1 -p 6502` |
-| `MUMBLE_ICESECRETREAD` | `---` |
-| `MUMBLE_ICESECRETWRITE` | `---` |
-| `MUMBLE_IMAGEMESSAGELENGTH` |`131072` |
-| `MUMBLE_KDFITERATIONS` | `-1`|
-| `MUMBLE_LEGACYPASSWORDHASH` | `false` |
-| `MUMBLE_MESSAGEBURST` | `5` |
-| `MUMBLE_MESSAGELIMIT` | `1` |
-| `MUMBLE_OBFUSCATE` | `false` |
-| `MUMBLE_OPUSTHRESHOLD` | `100` |
-| `MUMBLE_REGISTERHOSTNAME` | `---` |
-| `MUMBLE_REGISTERNAME` | `---`|
-| `MUMBLE_REGISTERPASSWORD` | `---` |
-| `MUMBLE_REGISTERURL` | `---` |
-| `MUMBLE_REMEMBERCHANNEL` | `true`|
-| `MUMBLE_SENDVERSION` | `false`|
-| `MUMBLE_SERVERPASSWORD` | `---` |
-| `MUMBLE_SSLCIPHERS` | `---` |
-| `MUMBLE_SSLPASSPHRASE` | `---` |
-| `MUMBLE_SUGGESTPOSITIONAL` | `---` |
-| `MUMBLE_SUGGESTPUSHTOTALK` | `---` |
-| `MUMBLE_SUGGESTVERSION` | `false` |
-| `MUMBLE_TEXTMESSAGELENGTH` | `5000`|
-| `MUMBLE_TIMEOUT` | `30`|
-| `MUMBLE_USERNAME` | `[-=\\w\\[\\]\\{\\}\\(\\)\\@\\|\\.]+` |
-| `MUMBLE_USERS` | `100` |
-| `MUMBLE_USERSPERCHANNEL` | `0` |
-| `MUMBLE_WELCOMETEXT` | `<br />Welcome...` |
+| [`MUMBLE_ALLOWHTML`][mdoc-allowhtml] | `true`|
+| [`MUMBLE_ALLOWPING`][mdoc-allowping] | `true`|
+| [`MUMBLE_AUTOBANATTEMPTS`][mdoc-group-autoban] | `10`    |
+| [`MUMBLE_AUTOBANTIMEFRAME`][mdoc-group-autoban] | `120` |
+| [`MUMBLE_AUTOBANTIME`][mdoc-group-autoban] | `300` |
+| [`MUMBLE_BANDWIDTH`][mdoc-bandwidth] | `7200`|
+| [`MUMBLE_CHANNELNAME`][mdoc-group-channelusername] | `[ \\-=\\w\\#\\[\\]\\{\\}\\(\\)\\@\\|]+` |
+| [`MUMBLE_DATABASE`][mdoc-group-database] | `/data/murmur.sqlite` |
+| [`MUMBLE_DB_DRIVER`][mdoc-group-database] | `QSQLITE` |
+| [`MUMBLE_DB_USERNAME`][mdoc-group-database] | `---` |
+| [`MUMBLE_DB_PASSWORD`][mdoc-group-database] | `---` |
+| [`MUMBLE_DEFAULTCHANNEL`][mdoc-defaultchannel] | `---` |
+| [`MUMBLE_ENABLESSL`](#ssl-certificates-murmurinissl) | `0` |
+| [`MUMBLE_ICE`][mdoc-ice] | `tcp -h 127.0.0.1 -p 6502` |
+| [`MUMBLE_ICESECRETREAD`][mdoc-group-icesecret] | `---` |
+| [`MUMBLE_ICESECRETWRITE`][mdoc-group-icesecret] | `---` |
+| [`MUMBLE_IMAGEMESSAGELENGTH`][mdoc-imagemessagelength] |`131072` |
+| [`MUMBLE_KDFITERATIONS`][mdoc-kdfIterations] | `-1`|
+| [`MUMBLE_LEGACYPASSWORDHASH`][mdoc-legacyPasswordHash] | `false` |
+| [`MUMBLE_MESSAGEBURST`][mdoc-ratelimit] | `5` |
+| [`MUMBLE_MESSAGELIMIT`][mdoc-ratelimit] | `1` |
+| [`MUMBLE_OBFUSCATE`][mdoc-obfuscate] | `false` |
+| [`MUMBLE_OPUSTHRESHOLD`][mdoc-opusthreshold] | `100` |
+| [`MUMBLE_REGISTERHOSTNAME`][mdoc-registerHostname] | `---` |
+| [`MUMBLE_REGISTERNAME`][mdoc-registerName] | `---`|
+| [`MUMBLE_REGISTERPASSWORD`][mdoc-registerPassword] | `---` |
+| [`MUMBLE_REGISTERURL`][mdoc-registerUrl] | `---` |
+| [`MUMBLE_REMEMBERCHANNEL`][mdoc-rememberchannel] | `true`|
+| [`MUMBLE_SENDVERSION`][mdoc-sendversion] | `false`|
+| [`MUMBLE_SERVERPASSWORD`][mdoc-serverpassword] | `---` |
+| [`MUMBLE_SSLCIPHERS`](#ssl-certificates-murmurinissl) | `---` |
+| [`MUMBLE_SSLPASSPHRASE`](#ssl-certificates-murmurinissl) | `---` |
+| [`MUMBLE_SUGGESTPOSITIONAL`][mdoc-suggestPositional] | `---` |
+| [`MUMBLE_SUGGESTPUSHTOTALK`][mdoc-suggestPushToTalk] | `---` |
+| [`MUMBLE_SUGGESTVERSION`][mdoc-suggestVersion] | `false` |
+| [`MUMBLE_TEXTMESSAGELENGTH`][mdoc-textmessagelength] | `5000`|
+| [`MUMBLE_TIMEOUT`][mdoc-timeout] | `30`|
+| [`MUMBLE_USERNAME`][mdoc-group-channelusername] | `[-=\\w\\[\\]\\{\\}\\(\\)\\@\\|\\.]+` |
+| [`MUMBLE_USERS`][mdoc-users] | `100` |
+| [`MUMBLE_USERSPERCHANNEL`][mdoc-usersperchannel] | `0` |
+| [`MUMBLE_WELCOMETEXT`][mdoc-welcometext] | `<br />Welcome...` |
 | `SUPERUSER_PASSWORD` | If not defined, a password will be auto-generated. |
 
-### Custom welcome text
+### Custom welcome text ([Murmur.ini::welcometext][mdoc-welcometext])
 
 If the environnement variable `MUMBLE_WELCOMETEXT` will produce to big config for you, 
 you can customize the welcome text with a separate file.
@@ -117,11 +116,11 @@ escaped automatically, but you may want to confirm that your message was parsed
 correctly.
 
 ### Custom configuration file
-If you want to use a fully set mumble-server configuration file, 
+If you want to use a fully set murmur configuration file, 
 you can mount the file into the container at `/data/murmur.ini`
 You cannot have both environment variables AND config file. The config file override everything.
 
-### SSL Certificates
+### SSL Certificates ([Murmur.ini::SSL][mdoc-sslcertkey])
 
 The server will generate its own SSL certificates when the daemon is started. If
 you wish to provide your own certificates and ciphers instead, you can do so by

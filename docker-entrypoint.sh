@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 set -e
 
 CONFIGFILE="/etc/murmur/murmur.ini"
@@ -6,11 +6,13 @@ ICEFILE="/etc/murmur/ice.ini"
 WELCOMEFILE="/data/welcometext"
 CUSTOM_CONFIG_FILE="/data/murmur.ini"
 
+command=( "${@}" )
+
 setVal() {
     if [ -n "${1}" ] && [ -n "${2}" ]; then
         echo "update setting: ${1} with: ${2}"
         tmp=$(echo $2 | sed 's,\\,\\\\,g') # Double every \ for next sed
-        sed -i -E 's#;?('"${1}"'=).*#\1'"${tmp}"'#' "${CONFIGFILE}"
+        sed -i -E 's;#?('"${1}"'=).*;\1'"${2}"';' "$CONFIGFILE"
     fi
 }
 
@@ -93,16 +95,20 @@ if ! grep -q '\[Ice\]' "${CONFIGFILE}"; then
     cat "${ICEFILE}" >> "${CONFIGFILE}"
 fi
 
-chown -R murmur:nobody /data/
 
 if [ -f "${CUSTOM_CONFIG_FILE}" ]; then
     CONFIGFILE="${CUSTOM_CONFIG_FILE}"
 fi
 
-# Run murmur if not in debug mode
-if [ -z "$DEBUG" ] || [ "$DEBUG" -ne 1 ]; then
-    exec /opt/murmur/murmur.x86 -fg -ini "${CONFIGFILE}"
-else
-    exec /opt/murmur/murmur.x86 -fg -ini "${CONFIGFILE}" -v
+command+=( "-ini" "${CONFIGFILE}")
+if [ ! -z "$DEBUG" ] || [ "$DEBUG" -e 1 ]; then
+    command+=( "-v" )
 fi
 
+# RUN shell if the docker parameter is sh or bash (override the CMD)
+if [ "$1" == "bash" ] || [ "$1" == "sh" ]; then
+    exec "${@}"
+fi
+
+echo "Command used to start the mumble-server : ${command[@]}"
+exec "${command[@]}"
