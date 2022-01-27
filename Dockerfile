@@ -1,39 +1,73 @@
-FROM alpine@sha256:b276d875eeed9c7d3f1cfa7edb06b22ed22b14219a7d67c52c56612330348239
+# https://github.com/mumble-voip/mumble/blob/master/docs/dev/build-instructions/build_linux.md
 
-# Set environment variables
-ENV MUMBLE_VERSION=1.3.3
+FROM ubuntu:21.10 as build
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV MUMBLE_VERSION=v1.4.230
+
+RUN apt-get update && apt-get install --no-install-recommends -y \
+  git cmake build-essential ca-certificates pkg-config \
+  libssl-dev \
+  qtbase5-dev \
+  qttools5-dev \
+  qttools5-dev-tools \
+  libqt5svg5-dev \
+  libboost-dev \
+  libssl-dev \
+  libprotobuf-dev \
+  protobuf-compiler \
+  libprotoc-dev \
+  libcap-dev \
+  libxi-dev \
+  libasound2-dev \
+  libogg-dev \
+  libsndfile1-dev \
+  libspeechd-dev \
+  libavahi-compat-libdnssd-dev \
+  libzeroc-ice-dev \
+  libpoco-dev \
+  g++-multilib \
+  libgrpc++-dev \
+  protobuf-compiler-grpc \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
+    
+RUN git clone https://github.com/mumble-voip/mumble/
+WORKDIR /mumble/build
+RUN git checkout "$MUMBLE_VERSION" && git submodule update --init --recursive
+
+RUN cmake -Dclient=OFF -DCMAKE_BUILD_TYPE=Release -Doverlay-xcompile=OFF .. && cmake --build . -j $(nproc)
+
+FROM ubuntu:21.10
+ARG DEBIAN_FRONTEND=noninteractive
+RUN adduser murmur
+
+COPY --from=build /mumble/build/mumble-server /usr/bin/mumble-server
 
 # Copy project files into container
 COPY ./config /etc/murmur
 COPY ./docker-entrypoint.sh /usr/local/bin/
 
-RUN apk --no-cache add \
-        pwgen \
-        libressl \
-        qt5-qtbase-mysql \
-    && adduser -SDH murmur \
-    && mkdir -p \
-        /data \
-        /opt \
-        /var/run/murmur \
-    && chown -R murmur:nobody \
-        /data \
-        /etc/murmur \
-        /var/run/murmur \
-    && wget \
-        https://github.com/mumble-voip/mumble/releases/download/${MUMBLE_VERSION}/murmur-static_x86-${MUMBLE_VERSION}.tar.bz2 -O - |\
-        bzcat -f |\
-        tar -x -C /opt -f - \
-    && mv /opt/murmur* /opt/murmur
+RUN apt-get update && apt-get install --no-install-recommends -y \
+	libcap2 \
+	libzeroc-ice3.7 \
+	'^libprotobuf[0-9]+$' \
+	'^libgrpc[0-9]+$' \
+	libgrpc++1 \
+	libavahi-compat-libdnssd1 \
+	libqt5core5a \
+	libqt5network5 \
+	libqt5sql5 \
+	libqt5sql5-mysql \
+	libqt5sql5-psql \
+	libqt5sql5-sqlite \
+	libqt5xml5 \
+	libqt5dbus5 \
+	ca-certificates \
+	&& apt-get clean \
+	&& rm -rf /var/lib/apt/lists/*
 
-# Exposed port should always match what is set in /murmur/murmur.ini
-EXPOSE 64738/tcp 64738/udp
+EXPOSE 64738/tcp 64738/udp 50051
+USER murmur
 
-# Set the working directory
-WORKDIR /etc/murmur
-
-# Add the data volume for data persistence
-VOLUME ["/data/"]
-
-# Configure runtime container and start murmur
-ENTRYPOINT ["docker-entrypoint.sh"]
+CMD /usr/bin/mumble-server -v -fg -ini /etc/murmur/murmur.ini
