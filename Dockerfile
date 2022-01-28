@@ -26,7 +26,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
   libavahi-compat-libdnssd-dev \
   libzeroc-ice-dev \
   libpoco-dev \
-  g++-multilib \
   libgrpc++-dev \
   protobuf-compiler-grpc \
   && apt-get clean \

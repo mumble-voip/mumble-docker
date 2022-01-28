@@ -101,7 +101,7 @@ if [ -f "${CUSTOM_CONFIG_FILE}" ]; then
 fi
 
 command+=( "-ini" "${CONFIGFILE}")
-if [ ! -z "$DEBUG" ] || [ "$DEBUG" -e 1 ]; then
+if [ ! -z "$DEBUG" ] || [ "$DEBUG" -eq 1 ]; then
     command+=( "-v" )
 fi
 
