@@ -35,7 +35,7 @@ RUN git clone https://github.com/mumble-voip/mumble/
 WORKDIR /mumble/build
 RUN git checkout "$MUMBLE_VERSION" && git submodule update --init --recursive
 
-RUN cmake -Dclient=OFF -DCMAKE_BUILD_TYPE=Release -Doverlay-xcompile=OFF .. && cmake --build . -j $(nproc)
+RUN cmake -Dclient=OFF -DCMAKE_BUILD_TYPE=Release .. && cmake --build . -j $(nproc)
 
 FROM ubuntu:21.10
 ARG DEBIAN_FRONTEND=noninteractive
