@@ -12,7 +12,7 @@ This guide assumes that you already have installed.
 
 ### Pull the official image
 #### NOT READY
-An image is available from the [Docker Hub](https://hub.docker.com/r/mumblevoip/mumble-serv) registry, built
+An image is available from the [Docker Hub](https://hub.docker.com/r/mumblevoip/mumble-server) registry, built
 automatically from this repository. It's easy to get started:
 
 ```text
