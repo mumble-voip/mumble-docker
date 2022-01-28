@@ -52,7 +52,7 @@ For example:
 ```text
 docker run -d \
     -p 64738:64738/tcp \
-    -p 64738:64738/udp
+    -p 64738:64738/udp \
     -e MUMBLE_SERVERPASSWORD='superSecretPasswordHere' \
     --name mumble-server-001 \
     mumble-voip/mumble-server[:tag]
