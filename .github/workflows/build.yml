@@ -28,4 +28,6 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
+          build-args: |
+            MUMBLE_VERSION=${{ env.GIT_TAG }}
           tags: mumblevoip/mumble-server:latest,mumblevoip/mumble-server:${{ env.GIT_TAG }}

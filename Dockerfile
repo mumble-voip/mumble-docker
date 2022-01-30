@@ -1,4 +1,4 @@
-# https://github.com/mumble-voip/mumble/blob/master/docs/dev/build-instructions/build_linux.md
+# Based on https://github.com/mumble-voip/mumble/blob/master/docs/dev/build-instructions/build_linux.md
 
 FROM ubuntu:21.10 as base
 
@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 FROM base as build
 ARG DEBIAN_FRONTEND=noninteractive
-ARG MUMBLE_VERSION=v1.4.230
+ARG MUMBLE_VERSION=v0.0.0
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
   git cmake build-essential ca-certificates pkg-config \
@@ -56,7 +56,7 @@ RUN git clone https://github.com/mumble-voip/mumble/
 WORKDIR /mumble/build
 RUN git checkout "$MUMBLE_VERSION" && git submodule update --init --recursive
 
-RUN cmake -Dclient=OFF -DCMAKE_BUILD_TYPE=Release -DBUILD_NUMBER=$MUMBLE_VERSION .. && cmake --build . -j $(nproc)
+RUN cmake -Dclient=OFF -DCMAKE_BUILD_TYPE=Release -DBUILD_NUMBER=${MUMBLE_VERSION##*.} .. && cmake --build . -j $(nproc)
 
 FROM base
 RUN adduser murmur
