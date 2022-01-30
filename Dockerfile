@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 FROM base as build
 ARG DEBIAN_FRONTEND=noninteractive
-ARG MUMBLE_VERSION=v0.0.0
+ARG MUMBLE_VERSION
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
   git cmake build-essential ca-certificates pkg-config \
@@ -66,8 +66,8 @@ COPY --from=build /mumble/build/mumble-server /usr/bin/mumble-server
 # Copy project files into container
 COPY ./config /etc/murmur
 COPY ./docker-entrypoint.sh /
-
-RUN chown -R murmur:nogroup /etc/murmur/
+RUN mkdir /data
+RUN chown -R murmur:nogroup /etc/murmur/ /data
 
 EXPOSE 64738/tcp 64738/udp 50051
 USER murmur

@@ -36,11 +36,13 @@ docker run -d \
     -p 64738:64738/tcp \
     -p 64738:64738/udp \
     --name mumble-server-001 \
+    -v ./data/mumble-server/database.sqlite:/data/database.sqlite \
     mumble-voip/mumble-server[:tag]
 ```
 
 You should now be able to open up the Mumble client, and connect to the server
 running at `127.0.0.1:64738`.
+Please note I use a volume to backup the sqlite database on my disk with a relative path.
 
 ### Configuration options
 
@@ -54,6 +56,7 @@ docker run -d \
     -p 64738:64738/tcp \
     -p 64738:64738/udp \
     -e MUMBLE_SERVERPASSWORD='superSecretPasswordHere' \
+    -v ./data/mumble-server/database.sqlite:/data/database.sqlite
     --name mumble-server-001 \
     mumble-voip/mumble-server[:tag]
 ```
@@ -158,4 +161,11 @@ view the SuperUser password is for an instance running in a container named
 ```text
 $ docker logs mumble-server-001 2>&1 | grep SUPERUSER_PASSWORD
 > SUPERUSER_PASSWORD: <value>
+```
+
+### Local build
+If you want to build the image yourself, you need to add the MUMBLE_VERSION arg.
+Command :
+```
+docker build --build-arg MUMBLE_VERSION=v1.4.230 mumble-docker/
 ```
