@@ -1,8 +1,6 @@
 name: Publish Docker image
 
 on:
-    #release:
-    #    types: [published]
     workflow_dispatch:
         inputs:
             mumble-version:
@@ -10,7 +8,7 @@ on:
                 required: true
                 default: "latest"
             docker-version:
-                description: "Docker Image version independant of mumble version"
+                description: "Docker image version, independent of mumble version"
                 required: true
                 default: 0
 
@@ -21,16 +19,13 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v2
               
-            #- name: Set mumble-version with release tag
-            #  run: echo "MUMBLE_VERSION=`echo $(git describe --tags --abbrev=0)`" >> $GITHUB_ENV
-              
             - name: Set mumble-version if manual trigger
               if: "${{ github.event.inputs.mumble-version != '' }}"
-              run: echo "MUMBLE_VERSION=`echo ${{ github.event.inputs.mumble-version }}" >> $GITHUB_ENV
+              run: echo "MUMBLE_VERSION=\"${{ github.event.inputs.mumble-version }}\"" >> $GITHUB_ENV
               
             - name: Set docker-version if manual trigger
               if: "${{ github.event.inputs.docker-version != '' }}"
-              run: echo "DOCKER_VERSION=`echo ${{ github.event.inputs.docker-version }}" >> $GITHUB_ENV
+              run: echo "DOCKER_VERSION=\"${{ github.event.inputs.docker-version }}\"" >> $GITHUB_ENV
               
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v1
