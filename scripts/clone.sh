@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
+set -x
 
 git clone --filter=tree:0 https://github.com/mumble-voip/mumble/ /mumble/repo
 

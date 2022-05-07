@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -e
+set -x
 
 BUILD_NUMBER_SCRIPT="/mumble/repo/scripts/mumble-build-number.py"
 VERSION_SCRIPT="/mumble/repo/scripts/mumble-version.py"
