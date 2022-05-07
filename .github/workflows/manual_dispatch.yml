@@ -15,6 +15,10 @@ on:
                 description: "Whether the built image(s) shall be published to Dockerhub"
                 required: true
                 default: "false"
+            update_latest:
+                description: "Whether to update the 'latest' tag on Dockerhub"
+                required: true
+                default: "false"
 
 jobs:
     manual_dispatch:
@@ -23,5 +27,6 @@ jobs:
             mumble_version: ${{ github.event.inputs.mumble_version }}
             docker_version: ${{ github.event.inputs.docker_version }}
             publish: ${{ github.event.inputs.publish == 'true' }}
+            update_latest: ${{ github.event.inputs.update_latest == 'true' }}
             platforms: "linux/amd64"
         secrets: inherit
