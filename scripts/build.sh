@@ -43,4 +43,4 @@ cmake \
 
 cmake --build . -j $(nproc)
 
-ctest --output-on-failure .
+ctest --output-on-failure . -j $(nproc)
