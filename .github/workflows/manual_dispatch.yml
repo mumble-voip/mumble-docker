@@ -1,0 +1,27 @@
+name: Manual dispatch
+
+on:
+    workflow_dispatch:
+        inputs:
+            mumble_version:
+                description: "The version (tag or commit hash) of Mumble to build"
+                required: true
+                default: "latest"
+            docker_version:
+                description: "Docker image version, independent of mumble version"
+                required: true
+                default: "0"
+            publish:
+                description: "Whether the built image(s) shall be published to Dockerhub"
+                required: true
+                default: "false"
+
+jobs:
+    manual_dispatch:
+        uses: ./.github/workflows/build_and_publish.yml
+        with:
+            mumble_version: ${{ github.event.inputs.mumble_version }}
+            docker_version: ${{ github.event.inputs.docker_version }}
+            publish: ${{ github.event.inputs.publish == 'true' }}
+            platforms: "linux/amd64"
+        secrets: inherit
