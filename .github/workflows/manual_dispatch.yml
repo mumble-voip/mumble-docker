@@ -17,7 +17,7 @@ on:
                 default: "false"
 
 jobs:
-    docker:
+    build:
         uses: mumble-voip/mumble-docker/.github/workflows/build_and_publish.yml@master
         with:
             mumble_version: ${{ inputs.mumble_version }}
