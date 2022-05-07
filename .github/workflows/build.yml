@@ -21,11 +21,11 @@ jobs:
               
             - name: Set mumble-version if manual trigger
               if: "${{ github.event.inputs.mumble-version != '' }}"
-              run: echo "MUMBLE_VERSION=\"${{ github.event.inputs.mumble-version }}\"" >> $GITHUB_ENV
+              run: echo "MUMBLE_VERSION=${{ github.event.inputs.mumble-version }}" >> $GITHUB_ENV
               
             - name: Set docker-version if manual trigger
               if: "${{ github.event.inputs.docker-version != '' }}"
-              run: echo "DOCKER_VERSION=\"${{ github.event.inputs.docker-version }}\"" >> $GITHUB_ENV
+              run: echo "DOCKER_VERSION=${{ github.event.inputs.docker-version }}" >> $GITHUB_ENV
               
             - name: Set up QEMU
               uses: docker/setup-qemu-action@v2
