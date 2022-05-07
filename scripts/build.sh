@@ -9,7 +9,7 @@ VERSION_SCRIPT="/mumble/repo/scripts/mumble-version.py"
 mkdir build && cd build
 
 buildNumber=0
-if [[ "$MUMBLE_VERSION" =~ '^v[0-9]+\.[0-9]+\.[0-9]+' ]]; then
+if [[ "$MUMBLE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 	buildNumber=$(echo "$MUMBLE_VERSION" | sed -E 's/v[0-9]+\.[0-9]+\.([0-9]+)/\1/' )
 	echo "Build number read from version: $buildNumber"
 else
