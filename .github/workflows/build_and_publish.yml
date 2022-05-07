@@ -1,0 +1,50 @@
+name: Build and Publish
+
+on:
+    workflow_call:
+        inputs:
+            mumble_version:
+                required: true
+                type: string
+            docker_version:
+                required: true
+                type: string
+            platforms:
+                required: true
+                type: string
+            publish:
+                required: true
+                type: boolean
+        secrets: inherit
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+              
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v2
+              
+            - name: Set up Docker Build
+              uses: docker/setup-buildx-action@v2
+              
+            - name: Login to DockerHub
+              if: ${{ inputs.publish }}
+              uses: docker/login-action@v2 
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+                
+            - name: Build and push
+              uses: docker/build-push-action@v2
+              with:
+                context: .
+                platforms: ${{ inputs.platforms }}
+                push: ${{ inputs.publish }}
+                build-args: |
+                    MUMBLE_VERSION=${{ inputs.mumble_version }}
+                env:
+                    MUMBLE_VERSION: ${{ inputs.mumble_version }}
+                tags: mumblevoip/mumble-server:latest, mumblevoip/mumble-server:${{ inputs.mumble_version }}, mumblevoip/mumble-server:${{ inputs.mumble_version }}-${{ inputs.docker_version }}
