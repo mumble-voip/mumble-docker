@@ -11,6 +11,7 @@ jobs:
             mumble_version: "v1.4.230"
             docker_version: '0'
             publish: false
+            update_latest: false
             platforms: "linux/amd64"
     build_latest:
         uses: ./.github/workflows/build_and_publish.yml
@@ -18,4 +19,5 @@ jobs:
             mumble_version: "latest"
             docker_version: '0'
             publish: false
+            update_latest: true
             platforms: "linux/amd64"

@@ -15,6 +15,9 @@ on:
             publish:
                 required: true
                 type: boolean
+            update_latest:
+                required: true
+                type: boolean
 
 jobs:
     build:
@@ -35,6 +38,14 @@ jobs:
               with:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Configure target tags (with latest)
+              if: ${{ inputs.update_latest }}
+              run: echo "TAGS=mumblevoip/mumble-server:latest, mumblevoip/mumble-server:${{ inputs.mumble_version }}, mumblevoip/mumble-server:${{ inputs.mumble_version }}-${{ inputs.docker_version }}" >> $GITHUB_ENV
+
+            - name: Configure target tags (without latest)
+              if: ${{ ! inputs.update_latest }}
+              run: echo "TAGS=mumblevoip/mumble-server:${{ inputs.mumble_version }}, mumblevoip/mumble-server:${{ inputs.mumble_version }}-${{ inputs.docker_version }}" >> $GITHUB_ENV
                 
             - name: Build and push
               uses: docker/build-push-action@v2
@@ -44,6 +55,6 @@ jobs:
                 push: ${{ inputs.publish }}
                 build-args: |
                     MUMBLE_VERSION=${{ inputs.mumble_version }}
-                tags: mumblevoip/mumble-server:latest, mumblevoip/mumble-server:${{ inputs.mumble_version }}, mumblevoip/mumble-server:${{ inputs.mumble_version }}-${{ inputs.docker_version }}
+                tags: ${{ env.TAGS }}
               env:
                 MUMBLE_VERSION: ${{ inputs.mumble_version }}
