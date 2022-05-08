@@ -76,31 +76,29 @@ else
 	# Iterate over all environment variable key, value pairs and check if they match our naming scheme
 	####
 	while IFS='=' read -d '' -r var value; do
-		if [[ "$var" == "MUMBLE_CONFIG_"* ]]; then
-			uppercase_variable=${var/MUMBLE_CONFIG_/}
+		uppercase_variable=${var/MUMBLE_CONFIG_/}
 
-			# Remove underscores (to ensure that it doesn't matter whether the user
-			# uses e.g. MUMBLE_CONFIG_DB_BLA or MUMBLE_CONFIG_DBBLA)
-			uppercase_variable_no_underscores="${uppercase_variable//_/}"
-			found=false
+		# Remove underscores (to ensure that it doesn't matter whether the user
+		# uses e.g. MUMBLE_CONFIG_DB_BLA or MUMBLE_CONFIG_DBBLA)
+		uppercase_variable_no_underscores="${uppercase_variable//_/}"
+		found=false
 
-			for current_config in "${existing_config_options[@]}"; do
-				# convert to uppercase
-				upper_current_config=${current_config^^}
-				
-				if [ "$upper_current_config" = "$uppercase_variable" ] || [ "$upper_current_config" = "$uppercase_variable_no_underscores" ]; then
-					set_config "$current_config" "$value"
-					found=true
-					break
-				fi
-			done
+		for current_config in "${existing_config_options[@]}"; do
+			# convert to uppercase
+			upper_current_config=${current_config^^}
 
-			if [ "$found" = "false" ]; then
-				>&2 echo "[ERROR]: Unable to find config corresponding to variable \"$var\""
-				exit 1
+			if [ "$upper_current_config" = "$uppercase_variable" ] || [ "$upper_current_config" = "$uppercase_variable_no_underscores" ]; then
+				set_config "$current_config" "$value"
+				found=true
+				break
 			fi
+		done
+
+		if [ "$found" = "false" ]; then
+			>&2 echo "[ERROR]: Unable to find config corresponding to variable \"$var\""
+			exit 1
 		fi
-	done < <( printenv --null ) # Feeding it in like this, prevents the creation of a subshell for the while-loop
+	done < <( printenv --null | grep -az MUMBLE_CONFIG_ ) # Feeding it in like this, prevents the creation of a subshell for the while-loop
 
 	####
 	# Default settings (will apply only, if user hasn't specified the respective config options themselves)
