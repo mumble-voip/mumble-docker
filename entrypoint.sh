@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 set -e
 
-DATA_DIR="/data"
-BARE_BONES_CONFIG_FILE="/etc/mumble/bare_config.ini"
-CONFIG_FILE="${DATA_DIR}/mumble_server_config.ini"
+readonly DATA_DIR="/data"
+readonly BARE_BONES_CONFIG_FILE="/etc/mumble/bare_config.ini"
+readonly CONFIG_FILE="${DATA_DIR}/mumble_server_config.ini"
 
-server_invocation=( "${@}" )
+declare -a server_invocation=("${@}")
+declare -a existing_config_options
+declare -a used_configs
 
 array_contains() {
 	local array_expansion="$1[@]" seeking="$2"
@@ -43,9 +45,6 @@ if [[ -f "$MUMBLE_CUSTOM_CONFIG_FILE" ]]; then
 	CONFIG_FILE="$MUMBLE_CUSTOM_CONFIG_FILE"
 else
 	echo -e "# Config file automatically generated from the MUMBLE_CONFIG_* environment variables\n" > "${CONFIG_FILE}"
-
-	used_configs=()
-	existing_config_options=()
 
 	# Compile list of configurations that exist in bare bones config
 
