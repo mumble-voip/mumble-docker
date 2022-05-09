@@ -8,39 +8,28 @@ CONFIG_FILE="${DATA_DIR}/mumble_server_config.ini"
 # Grab the original command line that is supposed to start the Mumble server
 server_invocation=( "${@}" )
 
-array_contains () {
-	local array="$1[@]"
-	local seeking=$2
-	local contained=false
-	for element in "${!array}"; do
-		if [[ $element == "$seeking" ]]; then
-			contained=true
-			break
-		fi
+array_contains() {
+	local array_expansion="$1[@]" seeking="$2"
+	for element in "${!array_expansion}"; do
+		[[ "$element" = "$seeking" ]] && return 0
 	done
-
-	echo "$contained"
+	return 1
 }
 
 set_config() {
-	local config_name="$1"
-	local config_value="$2"
-	local is_default="$3"
+	local config_name="$1" config_value="$2" is_default="$3"
 	local apply_value=true
 
-	# Don't use default value if the user already set one
-	if [[ "$is_default" = "true" ]]; then
-		contained=$( array_contains used_configs "$config_name" )
-		[[ "$contained" = "true" ]] && apply_value=false
-	fi
+	[[ "$is_default" = true ]] && array_contains "used_configs" "$config_name" && \
+		apply_value=false # Don't use default value if the user already set one!
 
-    if [[  "$apply_value" = "true" ]]; then
-        echo "Setting config \"$config_name\" to: '$config_value'"
-        used_configs+=("$config_name")
+	[[ "$apply_value" != true ]] && return 0
 
-        # Append config to our on-the-fly-built config file
-        echo "${config_name}=${config_value}" >> "$CONFIG_FILE"
-    fi
+	echo "Setting config \"$config_name\" to: '$config_value'"
+	used_configs+=("$config_name")
+
+	# Append config to our on-the-fly-built config file
+	echo "${config_name}=${config_value}" >> "$CONFIG_FILE"
 }
 
 # Drop the user into a shell, if they so wish
