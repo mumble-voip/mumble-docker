@@ -85,10 +85,11 @@ else
 	set_config "port" 64738 true
 	set_config "users" 100 true
 
-	# Add ICE section
-	echo -e "\n[Ice]" >> "$CONFIG_FILE"
-	echo "Ice.Warn.UnknownProperties=1" >> "$CONFIG_FILE"
-	echo "Ice.MessageSizeMax=65536" >> "$CONFIG_FILE"
+	{ # Add ICE section
+		echo -e "\n[Ice]"
+		echo "Ice.Warn.UnknownProperties=1"
+		echo "Ice.MessageSizeMax=65536"
+	} >> "$CONFIG_FILE"
 fi
 
 # Additional environment variables
@@ -107,7 +108,7 @@ echo "Running Mumble server as uid=$(id -u) gid=$(id -g)"
 echo "\"${DATA_DIR}\" has the following permissions set:"
 echo "  $( stat ${DATA_DIR} --printf='%A, owner: \"%U\" (UID: %u), group: \"%G\" (GID: %g)' )"
 
-echo "Command run to start the service : ${server_invocation[@]}"
+echo "Command run to start the service : ${server_invocation[*]}"
 echo "Starting..."
 
 exec "${server_invocation[@]}"
