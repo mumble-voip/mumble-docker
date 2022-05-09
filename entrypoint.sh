@@ -31,9 +31,7 @@ set_config() {
 	# Don't use default value if the user already set one
 	if [[ "$is_default" = "true" ]]; then
 		contained=$( array_contains used_configs "$config_name" )
-		if [[ "$contained" = "true" ]]; then
-			apply_value=false
-		fi
+		[[ "$contained" = "true" ]] && apply_value=false
 	fi
 
     if [[  "$apply_value" = "true" ]]; then
@@ -118,9 +116,7 @@ fi
 ####
 # Additionnal environement variables
 ####
-if [[ -n "$MUMBLE_VERBOSE" && "$MUMBLE_VERBOSE" = true ]]; then
-    server_invocation+=( "-v" )
-fi
+[[ "$MUMBLE_VERBOSE" = true ]] && server_invocation+=( "-v" )
 
 # Make sure the correct config file will be used
 server_invocation+=( "-ini" "${CONFIG_FILE}")
