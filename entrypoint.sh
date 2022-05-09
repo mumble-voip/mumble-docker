@@ -29,14 +29,14 @@ set_config() {
 	local apply_value=true
 
 	# Don't use default value if the user already set one
-	if [ "$is_default" = "true" ]; then
+	if [[ "$is_default" = "true" ]]; then
 		contained=$( array_contains used_configs "$config_name" )
 		if [[ "$contained" = "true" ]]; then
 			apply_value=false
 		fi
 	fi
     
-    if [ "$apply_value" = "true" ]; then
+    if [[  "$apply_value" = "true" ]]; then
         echo "Setting config \"$config_name\" to: '$config_value'"
         used_configs+=("$config_name")
         
@@ -46,12 +46,12 @@ set_config() {
 }
     
 # Drop the user into a shell, if they so wish
-if [ "$1" = "bash" ] || [ "$1" = "sh" ]; then
+if [[ "$1" = "bash" ||  "$1" = "sh" ]]; then
     echo "Dropping into interactive BASH session"
     exec "${@}"
 fi
 
-if [ -f "$MUMBLE_CUSTOM_CONFIG_FILE" ]; then
+if [[ -f "$MUMBLE_CUSTOM_CONFIG_FILE" ]]; then
 	# Just use the config file specified by the user and don't bother assembling our own
 	echo "Using manually specified config file at $MUMBLE_CUSTOM_CONFIG_FILE"
 	echo "All MUMBLE_CONFIG variables will be ignored"
@@ -87,14 +87,14 @@ else
 			# convert to uppercase
 			upper_current_config=${current_config^^}
 
-			if [ "$upper_current_config" = "$uppercase_variable" ] || [ "$upper_current_config" = "$uppercase_variable_no_underscores" ]; then
+			if [[ "$upper_current_config" = "$uppercase_variable" || "$upper_current_config" = "$uppercase_variable_no_underscores" ]]; then
 				set_config "$current_config" "$value"
 				found=true
 				break
 			fi
 		done
 
-		if [ "$found" = "false" ]; then
+		if [[ "$found" = "false" ]]; then
 			>&2 echo "[ERROR]: Unable to find config corresponding to variable \"$var\""
 			exit 1
 		fi
@@ -118,7 +118,7 @@ fi
 ####
 # Additionnal environement variables
 ####
-if [ -n "$MUMBLE_VERBOSE" ] && [ "$MUMBLE_VERBOSE" = true ]; then
+if [[ -n "$MUMBLE_VERBOSE" && "$MUMBLE_VERBOSE" = true ]]; then
     server_invocation+=( "-v" )
 fi
 
@@ -128,7 +128,7 @@ server_invocation+=( "-ini" "${CONFIG_FILE}")
 ####
 # Variable to change the superuser password
 ####
-if [ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]; then
+if [[ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]]; then
     "${server_invocation[@]}" -supw "$MUMBLE_SUPERUSER_PASSWORD"
     echo "Successfully configured superuser password"
 fi
