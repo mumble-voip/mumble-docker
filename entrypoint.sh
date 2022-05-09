@@ -8,7 +8,7 @@ CONFIG_FILE="${DATA_DIR}/mumble_server_config.ini"
 # Grab the original command line that is supposed to start the Mumble server
 server_invocation=( "${@}" )
 
-array_contains () { 
+array_contains () {
 	local array="$1[@]"
 	local seeking=$2
 	local contained=false
@@ -35,16 +35,16 @@ set_config() {
 			apply_value=false
 		fi
 	fi
-    
+
     if [[  "$apply_value" = "true" ]]; then
         echo "Setting config \"$config_name\" to: '$config_value'"
         used_configs+=("$config_name")
-        
+
         # Append config to our on-the-fly-built config file
         echo "${config_name}=${config_value}" >> "$CONFIG_FILE"
     fi
 }
-    
+
 # Drop the user into a shell, if they so wish
 if [[ "$1" = "bash" ||  "$1" = "sh" ]]; then
     echo "Dropping into interactive BASH session"
@@ -62,7 +62,7 @@ else
 
 	used_configs=()
 	existing_config_options=()
-    
+
 	####
 	# Check what kind of configurations there exist in the bare bones config file
 	####
