@@ -5,7 +5,6 @@ DATA_DIR="/data"
 BARE_BONES_CONFIG_FILE="/etc/mumble/bare_config.ini"
 CONFIG_FILE="${DATA_DIR}/mumble_server_config.ini"
 
-# Grab the original command line that is supposed to start the Mumble server
 server_invocation=( "${@}" )
 
 array_contains() {
@@ -39,39 +38,31 @@ if [[ "$1" = "bash" ||  "$1" = "sh" ]]; then
 fi
 
 if [[ -f "$MUMBLE_CUSTOM_CONFIG_FILE" ]]; then
-	# Just use the config file specified by the user and don't bother assembling our own
 	echo "Using manually specified config file at $MUMBLE_CUSTOM_CONFIG_FILE"
 	echo "All MUMBLE_CONFIG variables will be ignored"
 	CONFIG_FILE="$MUMBLE_CUSTOM_CONFIG_FILE"
 else
-	# As a first step, we ensure that the config file is empty, so we can always start from a clean slate
 	echo -e "# Config file automatically generated from the MUMBLE_CONFIG_* environment variables\n" > "${CONFIG_FILE}"
 
 	used_configs=()
 	existing_config_options=()
 
-	####
-	# Check what kind of configurations there exist in the bare bones config file
-	####
+	# Compile list of configurations that exist in bare bones config
+
 	while read -r line; do
 		if [[ "$line" =~ ^(\;|\#)?\ *([a-zA-Z_0-9]+)=.* ]]; then
 			existing_config_options+=("${BASH_REMATCH[2]}")
 		fi
 	done < "$BARE_BONES_CONFIG_FILE"
-	####
-	# Process settings following environments variables starting with "MUMBLE_CONFIG_"
-	# Iterate over all environment variable key, value pairs and check if they match our naming scheme
-	####
+
+	# Process settings through variables of format MUMBLE_CONFIG_*
+
 	while IFS='=' read -d '' -r var value; do
 		uppercase_variable=${var/MUMBLE_CONFIG_/}
-
-		# Remove underscores (to ensure that it doesn't matter whether the user
-		# uses e.g. MUMBLE_CONFIG_DB_BLA or MUMBLE_CONFIG_DBBLA)
 		uppercase_variable_no_underscores="${uppercase_variable//_/}"
 		found=false
 
 		for current_config in "${existing_config_options[@]}"; do
-			# convert to uppercase
 			upper_current_config=${current_config^^}
 
 			if [[ "$upper_current_config" = "$uppercase_variable" || "$upper_current_config" = "$uppercase_variable_no_underscores" ]]; then
@@ -87,9 +78,8 @@ else
 		fi
 	done < <( printenv --null | grep -az MUMBLE_CONFIG_ ) # Feeding it in like this, prevents the creation of a subshell for the while-loop
 
-	####
-	# Default settings (will apply only, if user hasn't specified the respective config options themselves)
-	####
+	# Apply default settings if they're missing
+
 	set_config "database" "${DATA_DIR}/murmur.sqlite" true
 	set_config "ice" "\"tcp -h 127.0.0.1 -p 6502\"" true
 	set_config "welcometext" "\"<br />Welcome to this server, running the official Mumble Docker image.<br />Enjoy your stay!<br />\"" true
@@ -102,17 +92,12 @@ else
 	echo "Ice.MessageSizeMax=65536" >> "$CONFIG_FILE"
 fi
 
-####
-# Additionnal environement variables
-####
+# Additional environment variables
+
 [[ "$MUMBLE_VERBOSE" = true ]] && server_invocation+=( "-v" )
 
-# Make sure the correct config file will be used
 server_invocation+=( "-ini" "${CONFIG_FILE}")
 
-####
-# Variable to change the superuser password
-####
 if [[ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]]; then
     "${server_invocation[@]}" -supw "$MUMBLE_SUPERUSER_PASSWORD"
     echo "Successfully configured superuser password"
