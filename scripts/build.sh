@@ -9,16 +9,19 @@ VERSION_SCRIPT="/mumble/repo/scripts/mumble-version.py"
 mkdir build && cd build
 
 buildNumber=0
-if [[ "$MUMBLE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+if [[ ! -z "$MUMBLE_BUILD_NUMBER" ]]; then
+	buildNumber=$MUMBLE_BUILD_NUMBER
+	echo "Build number read from argument: $buildNumber"
+elif [[ "$MUMBLE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 	buildNumber=$(echo "$MUMBLE_VERSION" | sed -E 's/v[0-9]+\.[0-9]+\.([0-9]+)/\1/' )
 	echo "Build number read from version: $buildNumber"
 else
 	if [[ -f "$BUILD_NUMBER_SCRIPT" && -f "$VERSION_SCRIPT" ]]; then
 		version=$( python3 "$VERSION_SCRIPT" )
 		commit=$( git rev-parse HEAD )
-		buildNumber=$( python3 "$BUILD_NUMBER_SCRIPT" --commit "$commit" --version "$version" --default -1 )
-
-		if [[ "$buildNumber" -ge 0 ]]; then
+		buildNumber=$( timeout 20 python3 "$BUILD_NUMBER_SCRIPT" --commit "$commit" --version "$version" --default -1 || exitStatus=$? )
+		
+		if [[ "$exitStatus" -eq 0 && "$buildNumber" -ge 0 ]]; then
 			echo "Determined build number to be $buildNumber"
 		else
 			echo "Failed to fetch the build number for commit $commit, defaulting to 0"
