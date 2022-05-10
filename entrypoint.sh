@@ -4,9 +4,12 @@ set -e
 readonly DATA_DIR="/data"
 readonly BARE_BONES_CONFIG_FILE="/etc/mumble/bare_config.ini"
 readonly CONFIG_FILE="${DATA_DIR}/mumble_server_config.ini"
+readonly CONFIG_REGEX="^(\;|\#)?\ *([a-zA-Z_0-9]+)=.*"
+
+# Compile list of configuration options from the bare-bones config
+readarray -t existing_config_options < <(sed -En "s/$CONFIG_REGEX/\2/p" "$BARE_BONES_CONFIG_FILE")
 
 declare -a server_invocation=("${@}")
-declare -a existing_config_options
 declare -a used_configs
 
 array_contains() {
@@ -45,14 +48,6 @@ if [[ -f "$MUMBLE_CUSTOM_CONFIG_FILE" ]]; then
 	CONFIG_FILE="$MUMBLE_CUSTOM_CONFIG_FILE"
 else
 	echo -e "# Config file automatically generated from the MUMBLE_CONFIG_* environment variables\n" > "${CONFIG_FILE}"
-
-	# Compile list of configurations that exist in bare bones config
-
-	while read -r line; do
-		if [[ "$line" =~ ^(\;|\#)?\ *([a-zA-Z_0-9]+)=.* ]]; then
-			existing_config_options+=("${BASH_REMATCH[2]}")
-		fi
-	done < "$BARE_BONES_CONFIG_FILE"
 
 	# Process settings through variables of format MUMBLE_CONFIG_*
 
