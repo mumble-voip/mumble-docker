@@ -9,6 +9,7 @@ readonly CONFIG_REGEX="^(\;|\#)?\ *([a-zA-Z_0-9]+)=.*"
 # Compile list of configuration options from the bare-bones config
 readarray -t existing_config_options < <(sed -En "s/$CONFIG_REGEX/\2/p" "$BARE_BONES_CONFIG_FILE")
 
+# Grab the original command line that is supposed to start the Mumble server
 declare -a server_invocation=("${@}")
 declare -a used_configs
 
@@ -47,19 +48,21 @@ if [[ -f "$MUMBLE_CUSTOM_CONFIG_FILE" ]]; then
 	echo "All MUMBLE_CONFIG variables will be ignored"
 	CONFIG_FILE="$MUMBLE_CUSTOM_CONFIG_FILE"
 else
+	# Ensures the config file is empty, starting from a clean slate
 	echo -e "# Config file automatically generated from the MUMBLE_CONFIG_* environment variables\n" > "${CONFIG_FILE}"
 
 	# Process settings through variables of format MUMBLE_CONFIG_*
 
 	while IFS='=' read -d '' -r var value; do
+		# MUMBLE_CONFIG_DB_BLA and MUMBLE_CONFIG_DBBLA mean the same
 		uppercase_variable=${var/MUMBLE_CONFIG_/}
 		uppercase_variable_no_underscores="${uppercase_variable//_/}"
 		found=false
 
 		for current_config in "${existing_config_options[@]}"; do
-			upper_current_config=${current_config^^}
+			uppercase_current_config=${current_config^^}
 
-			if [[ "$upper_current_config" = "$uppercase_variable" || "$upper_current_config" = "$uppercase_variable_no_underscores" ]]; then
+			if [[ "$uppercase_current_config" = "$uppercase_variable" || "$uppercase_current_config" = "$uppercase_variable_no_underscores" ]]; then
 				set_config "$current_config" "$value"
 				found=true
 				break
@@ -91,8 +94,10 @@ fi
 
 [[ "$MUMBLE_VERBOSE" = true ]] && server_invocation+=( "-v" )
 
+# Make sure the correct configuration file is used
 server_invocation+=( "-ini" "${CONFIG_FILE}")
 
+# Variable to change the superuser password
 if [[ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]]; then
     "${server_invocation[@]}" -supw "$MUMBLE_SUPERUSER_PASSWORD"
     echo "Successfully configured superuser password"
