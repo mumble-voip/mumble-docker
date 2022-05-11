@@ -52,6 +52,7 @@ ADD ./scripts/* /mumble/scripts/
 WORKDIR /mumble/repo
 
 ARG MUMBLE_VERSION=latest
+ARG MUMBLE_BUILD_NUMBER=""
 ARG MUMBLE_CMAKE_ARGS=""
 
 RUN /mumble/scripts/clone.sh && /mumble/scripts/build.sh
