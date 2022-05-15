@@ -10,10 +10,12 @@ readonly CONFIG_REGEX="^(\;|\#)?\ *([a-zA-Z_0-9]+)=.*"
 readarray -t existing_config_options < <(sed -En "s/$CONFIG_REGEX/\2/p" "$BARE_BONES_CONFIG_FILE")
 
 # Create an associative array for faster config option lookup
-declare -A config_from_uppercase
+declare -A option_for
 
 for config in "${existing_config_options[@]}"; do
-	config_from_uppercase["${config^^}"]="$config"
+	# Ignore underscores during lookup
+	no_underscores="${config//_/}"
+	option_for["${no_underscores^^}"]="$config"
 done
 
 # Grab the original command line that is supposed to start the Mumble server
@@ -63,7 +65,7 @@ else
 	while IFS='=' read -d '' -r var value; do
 		# Uppercase and remove underscores so MUMBLE_CONFIG_A_B == MUMBLE_CONFIG_AB
 		uppercase_variable="${var/MUMBLE_CONFIG_/}"
-		config_option="${config_from_uppercase[${uppercase_variable//_/}]}"
+		config_option="${option_for[${uppercase_variable//_/}]}"
 
 		if [[ -z "$config_option" ]]; then
 			>&2 echo "[ERROR]: Unable to find config corresponding to variable \"$var\""
