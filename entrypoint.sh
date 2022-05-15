@@ -9,18 +9,21 @@ readonly CONFIG_REGEX="^(\;|\#)?\ *([a-zA-Z_0-9]+)=.*"
 # Compile list of configuration options from the bare-bones config
 readarray -t existing_config_options < <(sed -En "s/$CONFIG_REGEX/\2/p" "$BARE_BONES_CONFIG_FILE")
 
+# Grab the original command line that is supposed to start the Mumble server
+declare -a server_invocation=("${@}")
+declare -a used_configs
+
+normalize_name() {
+	local uppercase="${1^^}"
+	echo "${uppercase//_/}"
+}
+
 # Create an associative array for faster config option lookup
 declare -A option_for
 
 for config in "${existing_config_options[@]}"; do
-	# Ignore underscores during lookup
-	no_underscores="${config//_/}"
-	option_for["${no_underscores^^}"]="$config"
+	option_for["$(normalize_name "$config")"]="$config"
 done
-
-# Grab the original command line that is supposed to start the Mumble server
-declare -a server_invocation=("${@}")
-declare -a used_configs
 
 array_contains() {
 	local array_expansion="$1[@]" seeking="$2"
@@ -63,9 +66,7 @@ else
 	# Process settings through variables of format MUMBLE_CONFIG_*
 
 	while IFS='=' read -d '' -r var value; do
-		# Uppercase and remove underscores so MUMBLE_CONFIG_A_B == MUMBLE_CONFIG_AB
-		uppercase_variable="${var/MUMBLE_CONFIG_/}"
-		config_option="${option_for[${uppercase_variable//_/}]}"
+		config_option="${option_for[$(normalize_name "$var")]}"
 
 		if [[ -z "$config_option" ]]; then
 			>&2 echo "[ERROR]: Unable to find config corresponding to variable \"$var\""
@@ -73,7 +74,8 @@ else
 		fi
 
 		set_config "$config_option" "$value"
-	done < <( printenv --null | grep -az MUMBLE_CONFIG_ ) # Feeding it in like this, prevents the creation of a subshell for the while-loop
+	done < <( printenv --null | sed -zn 's/^MUMBLE_CONFIG_//p' )
+	# ^ Feeding it in like this, prevents the creation of a subshell for the while-loop
 
 	# Apply default settings if they're missing
 
