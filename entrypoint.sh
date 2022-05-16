@@ -3,8 +3,8 @@ set -e
 
 readonly DATA_DIR="/data"
 readonly BARE_BONES_CONFIG_FILE="/etc/mumble/bare_config.ini"
-readonly CONFIG_FILE="${DATA_DIR}/mumble_server_config.ini"
 readonly CONFIG_REGEX="^(\;|\#)?\ *([a-zA-Z_0-9]+)=.*"
+CONFIG_FILE="${DATA_DIR}/mumble_server_config.ini"
 
 # Compile list of configuration options from the bare-bones config
 readarray -t existing_config_options < <(sed -En "s/$CONFIG_REGEX/\2/p" "$BARE_BONES_CONFIG_FILE")
