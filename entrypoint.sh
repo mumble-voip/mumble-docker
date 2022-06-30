@@ -70,14 +70,14 @@ else
 
 		if [[ -z "$config_option" ]]; then
 			if [[ "$MUMBLE_ACCEPT_UNKNOWN_SETTINGS" = true ]]; then
-                        	echo "[WARNING]: Unable to find config corresponding to variable \"$var\". Make sure that it is correctly spelled, using it as-is"
+				echo "[WARNING]: Unable to find config corresponding to variable \"$var\". Make sure that it is correctly spelled, using it as-is"
 				set_config "$var" "$value"
-                	else
+			else
 				>&2 echo "[ERROR]: Unable to find config corresponding to variable \"$var\""
 				exit 1
 			fi
 		else
-	                set_config "$config_option" "$value"
+			set_config "$config_option" "$value"
 		fi
 
 	done < <( printenv --null | sed -zn 's/^MUMBLE_CONFIG_//p' )
