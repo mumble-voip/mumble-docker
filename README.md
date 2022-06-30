@@ -86,16 +86,21 @@ You can specify these environment variables when starting the container using th
 $ docker run -e "MUMBLE_CONFIG_SERVER_PASSWORD=123"
 ```
 
+Note: In the unlikely case where a `<configName>` setting is unknown to the container, startup will fail. The root cause of this error is the fact that
+this setting is incorrectly registered in the Murmur server code. You can workaround this error by setting the `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` 
+environment variable to true and spelling `<configName>` exactly as written in [Murmur.ini](https://wiki.mumble.info/wiki/Murmur.ini) documentation.
+
 
 ### Additional variables
 
 The following _additional_ variables can be set for further server configuration:
 
-| Environment Variable        | Description                                                                                                                                  |
-|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MUMBLE_CUSTOM_CONFIG_FILE` | Specify a custom config file path - **all `MUMBLE_CONFIG_` variables are IGNORED** <br/>(it's best to use a path inside the volume `/data/`) |
-| `MUMBLE_SUPERUSER_PASSWORD` | Specifies the SuperUser (Admin) password for this server. If this is not given, a random password will be generated upon first startup.      |
-| `MUMBLE_VERBOSE`            | Set to `true` to enable verbose logging in the server                                                                                        |
+| Environment Variable             | Description                                                                                                                                  |
+|----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` | Set to `true` to force the container to accept unknown settings passed as a `MUMBLE_CONFIG_` variable (see note above).                      |
+| `MUMBLE_CUSTOM_CONFIG_FILE`      | Specify a custom config file path - **all `MUMBLE_CONFIG_` variables are IGNORED** <br/>(it's best to use a path inside the volume `/data/`) |
+| `MUMBLE_SUPERUSER_PASSWORD`      | Specifies the SuperUser (Admin) password for this server. If this is not given, a random password will be generated upon first startup.      |
+| `MUMBLE_VERBOSE`                 | Set to `true` to enable verbose logging in the server                                                                                        |
 
 
 ## Building the container
