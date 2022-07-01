@@ -87,7 +87,7 @@ $ docker run -e "MUMBLE_CONFIG_SERVER_PASSWORD=123"
 ```
 
 Note: In the unlikely case where a `<configName>` setting is unknown to the container, startup will fail. The root cause of this error is the fact that
-this setting is incorrectly registered in the Murmur server code. You can workaround this error by setting the `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` 
+this setting is incorrectly registered in the Mumble server code. You can workaround this error by setting the `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` 
 environment variable to true and spelling `<configName>` exactly as written in [Murmur.ini](https://wiki.mumble.info/wiki/Murmur.ini) documentation.
 
 
