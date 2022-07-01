@@ -69,11 +69,17 @@ else
 		config_option="${option_for[$(normalize_name "$var")]}"
 
 		if [[ -z "$config_option" ]]; then
-			>&2 echo "[ERROR]: Unable to find config corresponding to variable \"$var\""
-			exit 1
+			if [[ "$MUMBLE_ACCEPT_UNKNOWN_SETTINGS" = true ]]; then
+				echo "[WARNING]: Unable to find config corresponding to variable \"$var\". Make sure that it is correctly spelled, using it as-is"
+				set_config "$var" "$value"
+			else
+				>&2 echo "[ERROR]: Unable to find config corresponding to variable \"$var\""
+				exit 1
+			fi
+		else
+			set_config "$config_option" "$value"
 		fi
 
-		set_config "$config_option" "$value"
 	done < <( printenv --null | sed -zn 's/^MUMBLE_CONFIG_//p' )
 	# ^ Feeding it in like this, prevents the creation of a subshell for the while-loop
 
