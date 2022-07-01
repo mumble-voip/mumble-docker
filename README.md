@@ -93,7 +93,7 @@ The following _additional_ variables can be set for further server configuration
 
 | Environment Variable             | Description                                                                                                                                  |
 |----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` | Set to `true` to force the container to accept unknown settings passed as a `MUMBLE_CONFIG_` variable (see note above).                      |
+| `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` | Set to `true` to force the container to accept unknown settings passed as a `MUMBLE_CONFIG_` variable (see note below).                      |
 | `MUMBLE_CUSTOM_CONFIG_FILE`      | Specify a custom config file path - **all `MUMBLE_CONFIG_` variables are IGNORED** <br/>(it's best to use a path inside the volume `/data/`) |
 | `MUMBLE_SUPERUSER_PASSWORD`      | Specifies the SuperUser (Admin) password for this server. If this is not given, a random password will be generated upon first startup.      |
 | `MUMBLE_VERBOSE`                 | Set to `true` to enable verbose logging in the server                                                                                        |
