@@ -6,6 +6,15 @@ readonly BARE_BONES_CONFIG_FILE="/etc/mumble/bare_config.ini"
 readonly CONFIG_REGEX="^(\;|\#)?\ *([a-zA-Z_0-9]+)=.*"
 CONFIG_FILE="${DATA_DIR}/mumble_server_config.ini"
 
+readonly SENSITIVE_CONFIGS=(
+	"dbPassword"
+	"icesecretread"
+	"icesecretwrite"
+	"serverpassword"
+	"registerpassword"
+	"sslPassPhrase"
+)
+
 # Compile list of configuration options from the bare-bones config
 readarray -t existing_config_options < <(sed -En "s/$CONFIG_REGEX/\2/p" "$BARE_BONES_CONFIG_FILE")
 
@@ -42,7 +51,11 @@ set_config() {
 
 	[[ "$apply_value" != true ]] && return 0
 
-	echo "Setting config \"$config_name\" to: '$config_value'"
+	if array_contains "SENSITIVE_CONFIGS" "$config_name"; then
+		echo "Setting config \"$config_name\" to: *********"
+	else
+		echo "Setting config \"$config_name\" to: '$config_value'"
+	fi
 	used_configs+=("$config_name")
 
 	# Append config to our on-the-fly-built config file
