@@ -98,7 +98,7 @@ else
 
 	# Apply default settings if they're missing
 
-	set_config "database" "${DATA_DIR}/murmur.sqlite" true
+	set_config "database" "${DATA_DIR}/mumble-server.sqlite" true
 	set_config "ice" "\"tcp -h 127.0.0.1 -p 6502\"" true
 	set_config "welcometext" "\"<br />Welcome to this server, running the official Mumble Docker image.<br />Enjoy your stay!<br />\"" true
 	set_config "port" 64738 true
