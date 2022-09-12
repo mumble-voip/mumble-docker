@@ -55,7 +55,11 @@ ARG MUMBLE_VERSION=latest
 ARG MUMBLE_BUILD_NUMBER=""
 ARG MUMBLE_CMAKE_ARGS=""
 
-RUN /mumble/scripts/clone.sh && /mumble/scripts/build.sh
+# Clone the repo, build it and finally copy the default server ini file. Since this file may be at different locations and Docker
+# doesn't support conditional copies, we have to ensure that regardless of where the file is located in the repo, it will end
+# up at a unique path in our build container to be copied further down.
+RUN /mumble/scripts/clone.sh && /mumble/scripts/build.sh \
+&& /mumble/scripts/copy_one_of.sh ./scripts/murmur.ini ./auxiliary_files/mumble-server.ini default_config.ini
 
 
 
@@ -66,7 +70,7 @@ ARG MUMBLE_GID=1000
 RUN groupadd --gid $MUMBLE_GID mumble && useradd --uid $MUMBLE_UID --gid $MUMBLE_GID mumble
 
 COPY --from=build /mumble/repo/build/mumble-server /usr/bin/mumble-server
-COPY --from=build /mumble/repo/scripts/murmur.ini /etc/mumble/bare_config.ini
+COPY --from=build /mumble/repo/default_config.ini /etc/mumble/bare_config.ini
 
 RUN mkdir -p /data && chown -R mumble:mumble /data && chown -R mumble:mumble /etc/mumble
 USER mumble
