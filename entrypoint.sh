@@ -98,6 +98,14 @@ else
 
 	# Apply default settings if they're missing
 
+	# Compatibilty with old DB filename
+	OLD_DB_FILE="${DATA_DIR}/murmur.sqlite"
+	if [[ -f "$OLD_DB_FILE" ]]; then
+		set_config "database" "$OLD_DB_FILE" true
+	else
+		set_config "database" "${DATA_DIR}/mumble-server.sqlite" true
+	fi
+
 	set_config "database" "${DATA_DIR}/mumble-server.sqlite" true
 	set_config "ice" "\"tcp -h 127.0.0.1 -p 6502\"" true
 	set_config "welcometext" "\"<br />Welcome to this server, running the official Mumble Docker image.<br />Enjoy your stay!<br />\"" true
