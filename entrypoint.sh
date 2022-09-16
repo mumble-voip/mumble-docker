@@ -106,7 +106,6 @@ else
 		set_config "database" "${DATA_DIR}/mumble-server.sqlite" true
 	fi
 
-	set_config "database" "${DATA_DIR}/mumble-server.sqlite" true
 	set_config "ice" "\"tcp -h 127.0.0.1 -p 6502\"" true
 
 	if ! array_contains "used_configs" "welcometextfile"; then
