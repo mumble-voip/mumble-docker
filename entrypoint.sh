@@ -108,7 +108,11 @@ else
 
 	set_config "database" "${DATA_DIR}/mumble-server.sqlite" true
 	set_config "ice" "\"tcp -h 127.0.0.1 -p 6502\"" true
-	set_config "welcometext" "\"<br />Welcome to this server, running the official Mumble Docker image.<br />Enjoy your stay!<br />\"" true
+
+	if ! array_contains "used_configs" "welcometextfile"; then
+		set_config "welcometext" "\"<br />Welcome to this server, running the official Mumble Docker image.<br />Enjoy your stay!<br />\"" true
+	fi
+
 	set_config "port" 64738 true
 	set_config "users" 100 true
 
