@@ -74,7 +74,7 @@ if [[ -f "$MUMBLE_CUSTOM_CONFIG_FILE" ]]; then
 	CONFIG_FILE="$MUMBLE_CUSTOM_CONFIG_FILE"
 else
 	# Ensures the config file is empty, starting from a clean slate
-	echo -e "# Config file automatically generated from the MUMBLE_CONFIG_* environment variables\n" > "${CONFIG_FILE}"
+	echo -e "# Config file automatically generated from the MUMBLE_CONFIG_* environment variables or secrets in /run/secrets/MUMBLE_CONFIG_* files\n" > "${CONFIG_FILE}"
 
 	# Process settings through variables of format MUMBLE_CONFIG_*
 
@@ -95,6 +95,23 @@ else
 
 	done < <( printenv --null | sed -zn 's/^MUMBLE_CONFIG_//p' )
 	# ^ Feeding it in like this, prevents the creation of a subshell for the while-loop
+
+	# Check any docker/podman secrets matching the pattern and set config from there
+	while read -r var; do
+		config_option="${option_for[$(normalize_name "$var")]}"
+		secret_file="/run/secrets/MUMBLE_CONFIG_$var"
+		if [[ -z "$config_option" ]]; then
+			if [[ "$MUMBLE_ACCEPT_UNKNOWN_SETTINGS" = true ]]; then
+				echo "[WARNING]: Unable to find config corresponding to container secret \"$secret_file\". Make sure that it is correctly spelled, using it as-is"
+				set_config "$var" "$value"
+			else
+				>&2 echo "[ERROR]: Unable to find config corresponding to container secret \"$secret_file\""
+				exit 1
+			fi
+		else
+			set_config "$config_option" "$(cat $secret_file)"
+		fi
+	done < <(ls /run/secrets | sed -n 's/^MUMBLE_CONFIG_//p')
 
 	# Apply default settings if they're missing
 
@@ -129,8 +146,12 @@ fi
 # Make sure the correct configuration file is used
 server_invocation+=( "-ini" "${CONFIG_FILE}")
 
-# Variable to change the superuser password
-if [[ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]]; then
+if [[ -f /run/secrets/MUMBLE_SUPERUSER_PASSWORD ]]; then
+	#Variable to change the superuser password
+    "${server_invocation[@]}" -supw "$(cat /run/secrets/MUMBLE_SUPERUSER_PASSWORD)"
+    echo "Successfully configured superuser password from container secret"
+elif [[ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]]; then
+	#Variable to change the superuser password
     "${server_invocation[@]}" -supw "$MUMBLE_SUPERUSER_PASSWORD"
     echo "Successfully configured superuser password"
 fi
