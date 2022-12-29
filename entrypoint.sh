@@ -74,7 +74,8 @@ if [[ -f "$MUMBLE_CUSTOM_CONFIG_FILE" ]]; then
 	CONFIG_FILE="$MUMBLE_CUSTOM_CONFIG_FILE"
 else
 	# Ensures the config file is empty, starting from a clean slate
-	echo -e "# Config file automatically generated from the MUMBLE_CONFIG_* environment variables or secrets in /run/secrets/MUMBLE_CONFIG_* files\n" > "${CONFIG_FILE}"
+	echo -e "# Config file automatically generated from the MUMBLE_CONFIG_* environment variables" > "${CONFIG_FILE}"
+	echo -e "# or secrets in /run/secrets/MUMBLE_CONFIG_* files\n" >> "${CONFIG_FILE}"
 
 	# Process settings through variables of format MUMBLE_CONFIG_*
 
@@ -111,7 +112,7 @@ else
 		else
 			set_config "$config_option" "$(cat $secret_file)"
 		fi
-	done < <(ls /run/secrets | sed -n 's/^MUMBLE_CONFIG_//p')
+	done < <( ls /run/secrets | sed -n 's/^MUMBLE_CONFIG_//p' )
 
 	# Apply default settings if they're missing
 
@@ -147,10 +148,11 @@ fi
 server_invocation+=( "-ini" "${CONFIG_FILE}")
 
 if [[ -f /run/secrets/MUMBLE_SUPERUSER_PASSWORD ]]; then
-	#Variable to change the superuser password
-    "${server_invocation[@]}" -supw "$(cat /run/secrets/MUMBLE_SUPERUSER_PASSWORD)"
-    echo "Successfully configured superuser password from container secret"
-elif [[ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]]; then
+	MUMBLE_SUPERUSER_PASSWORD="$(cat /run/secrets/MUMBLE_SUPERUSER_PASSWORD)"
+    echo "Read superuser password from container secret"
+fi
+
+if [[ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]]; then
 	#Variable to change the superuser password
     "${server_invocation[@]}" -supw "$MUMBLE_SUPERUSER_PASSWORD"
     echo "Successfully configured superuser password"
