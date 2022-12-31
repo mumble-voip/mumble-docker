@@ -86,6 +86,33 @@ You can specify these environment variables when starting the container using th
 $ docker run -e "MUMBLE_CONFIG_SERVER_PASSWORD=123"
 ```
 
+As an alternative to environment variables, docker or podman secrets can be used to read configuration options from files which follow the `MUMBLE_CONFIG_<config_name>` name pattern and are located in the `/run/secrets` directory at runtime. The same rules to naming environment variables apply to these files as well.
+
+Please consult the documentation of docker or podman on how to use secrets for further details.
+- [Docker (Swarm) Secrets](https://docs.docker.com/engine/swarm/secrets/)
+- Podman Secrets
+  - [podman run with secrets](https://docs.podman.io/en/latest/markdown/podman-run.1.html#secret-secret-opt-opt)
+  - [podman secret subcommand](https://docs.podman.io/en/latest/markdown/podman-secret.1.html)
+
+### Example: Running the container with secrets using podman
+To set the server password and superuser password using podman secrets, the following series of commands can be used:
+
+```bash
+# Create the secrets
+echo -n "secretserver" | podman secret create MUMBLE_CONFIG_SERVER_PASSWORD -
+echo -n "supassword" | podman secret create MUMBLE_SUPERUSER_PASSWORD -
+
+# Run the server with these secrets mounted
+podman run --detach \
+           --name mumble-server \
+           --publish 64738:64738/tcp \
+           --publish 64738:64738/udp \
+           --secret MUMBLE_CONFIG_SERVER_PASSWORD \
+           --secret MUMBLE_SUPERUSER_PASSWORD \
+           --volume ./data/mumble:/data \
+           --restart on-failure \
+           mumblevoip/mumble-server:<tag>
+```
 
 ### Additional variables
 
