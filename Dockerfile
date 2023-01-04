@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 	# Workaround for systems like CentOS 7 which won't load libQt5Core.so as expected:
 	# see also https://stackoverflow.com/a/68897099/
 	binutils \
-	&& find / -name 'libQt5Core.so.*' -exec strip --remove-section=.note.ABI-tag {} \; \
+	&& find /lib* /usr/lib* -name 'libQt5Core.so.*' -exec strip --remove-section=.note.ABI-tag {} \; \
 	&& apt-get -y purge binutils \
 	# End of workaround
 	&& apt-get clean \
