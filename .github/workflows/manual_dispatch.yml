@@ -28,5 +28,5 @@ jobs:
             docker_version: ${{ github.event.inputs.docker_version }}
             publish: ${{ github.event.inputs.publish == 'true' }}
             update_latest: ${{ github.event.inputs.update_latest == 'true' }}
-            platforms: "linux/amd64"
+            platforms: "linux/amd64,linux/arm64"
         secrets: inherit
