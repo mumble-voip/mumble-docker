@@ -36,4 +36,4 @@ jobs:
             docker_version: '0'
             publish: false
             update_latest: true
-            platforms: "linux/amd64"
+            platforms: "linux/amd64,linux/arm64"

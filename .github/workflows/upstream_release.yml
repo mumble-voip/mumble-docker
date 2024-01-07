@@ -12,5 +12,5 @@ jobs:
             docker_version: '0'
             publish: true
             update_latest: ${{ github.event.client_payload.is_latest }}
-            platforms: "linux/amd64"
+            platforms: "linux/amd64,linux/arm64"
         secrets: inherit
