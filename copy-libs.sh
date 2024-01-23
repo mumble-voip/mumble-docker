@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/sh
 if [ $# -lt 2 ]
 then
   echo "Too few arguments. Run copy-libs.sh <binary or shared lib to analyze> <target directory>"

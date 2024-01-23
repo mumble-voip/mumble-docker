@@ -1,7 +1,10 @@
+ARG DEBIAN_RELEASE_NAME=bullseye
+ARG DEBIAN_RELEASE_NUM=11
+
 # ------------------------------------------------------#
 # --- Build stage for the entrypoint.sh replacement ----#
 # ------------------------------------------------------#
-FROM rust:slim-bookworm as builder
+FROM rust:slim-${DEBIAN_RELEASE_NAME} as builder
 WORKDIR /data
 COPY Cargo.toml /data
 COPY Cargo.lock /data
@@ -15,7 +18,7 @@ RUN cargo build --release
 # --- Runtime image with mumble-server's dependencies --#
 # --- (Used to extract the shared libs from later) -----#
 # ------------------------------------------------------#
-FROM debian:bookworm-slim as base
+FROM debian:${DEBIAN_RELEASE_NAME}-slim as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -105,15 +108,15 @@ COPY --from=builder /data/target/release/mumble-docker/ /mumble-docker-entrypoin
 # reuse them in the distroless container in the final stage
 RUN /copy-libs.sh /mumble-docker-entrypoint /lib/copy
 RUN /copy-libs.sh /usr/bin/mumble-server /lib/copy
-RUN /copy-libs.sh /lib/x86_64-linux-gnu/qt5/plugins/sqldrivers/libqsqlite.so /lib/copy
-RUN cp -r /lib/x86_64-linux-gnu/qt-default /lib/copy
-RUN cp -r /lib/x86_64-linux-gnu/qt5/ /lib/copy
+RUN /copy-libs.sh /usr/lib/x86_64-linux-gnu/qt5/plugins/sqldrivers/libqsqlite.so /lib/copy
+RUN cp -r /usr/lib/x86_64-linux-gnu/qt-default /lib/copy
+RUN cp -r /usr/lib/x86_64-linux-gnu/qt5/ /lib/copy
 
 # ------------------------------------------------------#
 # --- Distroless base image for the final container --- #
 # --- Copying over needed libs from previous stage ---- #
 # ------------------------------------------------------#
-FROM gcr.io/distroless/cc-debian12:latest
+FROM gcr.io/distroless/cc-debian${DEBIAN_RELEASE_NUM}:latest
 COPY --from=runner /etc/passwd /etc/passwd
 COPY --from=runner /etc/shadow /etc/shadow
 COPY --from=runner /usr/bin/mumble-server /usr/bin/mumble-server
