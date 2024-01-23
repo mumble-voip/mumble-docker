@@ -2,12 +2,13 @@
 name = "mumble-docker"
 version = "0.1.0"
 edition = "2021"
+publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-regex = "1.7.0"
-libc = "0.2.138"
+regex = "1.10.3"
+libc = "0.2.152"
 
 [profile.release]
 lto = true
