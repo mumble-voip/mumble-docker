@@ -1,0 +1,39 @@
+services:
+    mumble-server:
+        image: mumblevoip/mumble-server:latest
+        container_name: "Murmur"
+        user: root                                                                     # Needed to change the owner of the certificate files
+        restart: unless-stopped
+        volumes:
+            - type: bind
+              source: ./data/mumble
+              target: /data
+              read_only: false
+            - type: bind
+              source: ./certif                                                         # Path to the folder on your host containing the certificate files.
+              target: /certif                                                          # Path to the folder inside the container where the certificate files will be mounted.
+              read_only: true
+        environment:
+            # Next two lines are needed if you want to use your own certificate since murmur auto creates a self-signed one.
+            # If you don't want to use your own certificate, comment the next two lines and the volume above.
+            # The self-signed certificate triggers a warning only once before connecting for the first time, that can be a turnoff for some users.
+            MUMBLE_CONFIG_SSL_CERT: /certif/cert.pem                                   # Path to the SSL certificate. Make sure the path prefix is the same as the one in the volume.
+            MUMBLE_CONFIG_SSL_KEY: /certif/key.pem                                     # Path to the SSL key. Make sure the path prefix is the same as the one in the volume.
+            MUMBLE_SUPERUSER_PASSWORD: <superuser_password>                            # Password for the superuser.
+            MUMBLE_CONFIG_SERVERPASSWORD: <server_join_password>                       # Password to join the server.
+            MUMBLE_CONFIG_USERS: 100                                                   # Maximum number of users allowed on the server.
+            MUMBLE_CONFIG_USERSPERCHANNEL: 0                                           # Maximum number of users allowed per channel.
+            MUMBLE_CONFIG_SENDVERSION: true                                            # Send the server version to clients.
+            MUMBLE_CONFIG_WELCOMETEXT: "<br />Welcome to <b>MY_SERVER_NAME</b>."       # Welcome text displayed to users when they join the server.
+            MUMBLE_CONFIG_ALLOWHTML: true                                              # Allow HTML in the welcome text.
+            # Uncomment the following lines to register the server on the public server list. If you want a private instance keep the lines commented.
+#           MUMBLE_CONFIG_REGISTERLOCATION: US                                         # Location of the server.
+#           MUMBLE_CONFIG_REGISTERURL: http://example.org                              # URL of the server.
+#           MUMBLE_CONFIG_REGISTERNAME: "Example Server Name"                          # Name of the server.
+#           MUMBLE_CONFIG_REGISTERPASSWORD: password                                   # Password to register the server.
+#           MUMBLE_CONFIG_REGISTERHOSTNAME: mumble.example.org                         # Hostname of the server.
+        ports:
+            - 64738:64738/tcp
+            - 64738:64738/udp
+#       expose:
+#           - 6502                                                                     # Ice
