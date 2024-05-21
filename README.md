@@ -25,7 +25,7 @@ Docker container using [docker-compose](https://docs.docker.com/compose/). Thus,
 
 In order for Mumble to store permanent data (most notably the database file (by default Mumble uses SQLite)), the image will use a
 [volume](https://docs.docker.com/storage/volumes/) which is mapped to the `/data/` path inside the image. By default the image uses a user with UID
-`1000` and GID of also `1000` but either can be adapted when building the image yourself (see below). You will have to make sure that all file
+`10000` and GID of also `10000` but either can be adapted when building the image yourself (see below). You will have to make sure that all file
 permissions are set up accordingly.
 
 ### Running the container

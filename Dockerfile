@@ -1,4 +1,4 @@
-FROM ubuntu:20.04 as base
+FROM ubuntu:22.04 as base
 
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -64,8 +64,8 @@ RUN /mumble/scripts/clone.sh && /mumble/scripts/build.sh \
 
 
 FROM base
-ARG MUMBLE_UID=1000
-ARG MUMBLE_GID=1000
+ARG MUMBLE_UID=10000
+ARG MUMBLE_GID=10000
 
 RUN groupadd --gid $MUMBLE_GID mumble && useradd --uid $MUMBLE_UID --gid $MUMBLE_GID mumble
 
