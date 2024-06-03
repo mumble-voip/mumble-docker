@@ -5,6 +5,8 @@ readonly DATA_DIR="/data"
 readonly BARE_BONES_CONFIG_FILE="/etc/mumble/bare_config.ini"
 readonly CONFIG_REGEX="^(\;|\#)?\ *([a-zA-Z_0-9]+)=.*"
 CONFIG_FILE="${DATA_DIR}/mumble_server_config.ini"
+MUMBLE_UID=${MUMBLE_UID:-10000}
+MUMBLE_GID=${MUMBLE_GID:-10000}
 
 readonly SENSITIVE_CONFIGS=(
 	"dbPassword"
@@ -159,11 +161,27 @@ if [[ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]]; then
 fi
 
 # Show /data permissions, in case the user needs to match the mount point access
-echo "Running Mumble server as uid=$(id -u) gid=$(id -g)"
+echo "Entrypoint running as uid=$(id -u) gid=$(id -g)"
+echo "Preparing Mumble server to run as uid=$(MUMBLE_UID) gid=$(MUMBLE_GID)"
+
+if [[ "$MUMBLE_UID" != "0" ]]; then
+  groupmod -og "$MUMBLE_GID" mumble
+  usermod -ou "$MUMBLE_UID" mumble
+  if [[ "$MUMBLE_NO_CHOWN" = true ]]; then
+    echo "Changing owner of folder {DATA_DIR}"
+    chown -R mumble:mumble ${DATA_DIR}
+  fi
+  exec runuser -u mumble -g mumble -- "$@"
+fi
+
 echo "\"${DATA_DIR}\" has the following permissions set:"
 echo "  $( stat ${DATA_DIR} --printf='%A, owner: \"%U\" (UID: %u), group: \"%G\" (GID: %g)' )"
 
 echo "Command run to start the service : ${server_invocation[*]}"
 echo "Starting..."
 
-exec "${server_invocation[@]}"
+if [[ "$MUMBLE_UID" != "0" ]]; then
+    exec runuser -u mumble -g mumble -- "${server_invocation[@]}"
+else
+    exec "${server_invocation[@]}"
+fi

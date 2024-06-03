@@ -122,6 +122,7 @@ The following _additional_ variables can be set for further server configuration
 |----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------- |
 | `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` | Set to `true` to force the container to accept unknown settings passed as a `MUMBLE_CONFIG_` variable (see note below).                      |
 | `MUMBLE_CUSTOM_CONFIG_FILE`      | Specify a custom config file path - **all `MUMBLE_CONFIG_` variables are IGNORED** <br/>(it's best to use a path inside the volume `/data/`) |
+| `MUMBLE_NO_CHOWN`                | Set to `true` to avoid the entrypoint to `chown` you `/data` folder                                                                          |
 | `MUMBLE_SUPERUSER_PASSWORD`      | Specifies the SuperUser (Admin) password for this server. If this is not given, a random password will be generated upon first startup.      |
 | `MUMBLE_VERBOSE`                 | Set to `true` to enable verbose logging in the server                                                                                        |
 
@@ -160,8 +161,9 @@ process employed by this Docker image.
 ### Using a different UID/GID
 
 Additionally, it is possible to specify the UID and the GID of the `mumble` user that is used inside the container. These can be controlled by the
-`MUMBLE_UID` and `MUMBLE_GID` build variables respectively. This is intended to allow you to use the same UID and GID as your user on your host
+`MUMBLE_UID` and `MUMBLE_GID` entrypoint variables respectively. This is intended to allow you to use the same UID and GID as your user on your host
 system, in order to cause minimal issues when accessing mounted volumes.
+By default, the entrypoint will `chown` the `/data` folder to have good rights on the mounted folder. If your system don't allow changing owner from the container itself or if you don't want to entrypoint to modify the rights in any way other by you, you can set the environment variable : `MUMBLE_NO_CHOWN` to `true`.
 
 ### Using custom build options
 
