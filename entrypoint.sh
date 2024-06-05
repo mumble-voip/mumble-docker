@@ -7,6 +7,7 @@ readonly CONFIG_REGEX="^(\;|\#)?\ *([a-zA-Z_0-9]+)=.*"
 CONFIG_FILE="${DATA_DIR}/mumble_server_config.ini"
 MUMBLE_UID=${MUMBLE_UID:-10000}
 MUMBLE_GID=${MUMBLE_GID:-10000}
+MUMBLE_CHOWN=${MUMBLE_CHOWN:-true}
 
 readonly SENSITIVE_CONFIGS=(
 	"dbPassword"
@@ -167,7 +168,7 @@ echo "Preparing Mumble server to run as uid=$(MUMBLE_UID) gid=$(MUMBLE_GID)"
 if [[ "$MUMBLE_UID" != "0" ]]; then
   groupmod -og "$MUMBLE_GID" mumble
   usermod -ou "$MUMBLE_UID" mumble
-  if [[ "$MUMBLE_NO_CHOWN" = true ]]; then
+  if [[ "$MUMBLE_CHOWN" = true ]]; then
     echo "Changing owner of folder {DATA_DIR}"
     chown -R mumble:mumble ${DATA_DIR}
   fi
