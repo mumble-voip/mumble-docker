@@ -1,5 +1,10 @@
 # Mumble Docker
 
+![Docker Image Version](https://img.shields.io/docker/v/mumblevoip/mumble-server)
+![Docker Pulls](https://img.shields.io/docker/pulls/mumblevoip/mumble-server)
+![Docker Image Size](https://img.shields.io/docker/image-size/mumblevoip/mumble-server)
+
+
 Mumble is a free, open source, low latency, high quality voice chat application.
 
 <p align="center"><b><a href="https://mumble.info">Mumble Website</a> • <a href="https://github.com/mumble-voip/mumble">Mumble Source</a></b></p>
