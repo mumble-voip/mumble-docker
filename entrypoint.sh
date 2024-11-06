@@ -169,7 +169,7 @@ if [[ "$MUMBLE_UID" != "0" ]]; then
   groupmod -og "$MUMBLE_GID" mumble
   usermod -ou "$MUMBLE_UID" mumble
   if [[ "$MUMBLE_CHOWN" = true ]]; then
-    echo "Changing owner of folder {DATA_DIR}"
+    echo "Changing owner of folder ${DATA_DIR}"
     chown -R mumble:mumble ${DATA_DIR}
   fi
   exec runuser -u mumble -g mumble -- "$@"
