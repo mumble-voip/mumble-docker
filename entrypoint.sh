@@ -168,11 +168,11 @@ echo "Preparing Mumble server to run as uid=$(MUMBLE_UID) gid=$(MUMBLE_GID)"
 if [[ "$MUMBLE_UID" != "0" ]]; then
   groupmod -og "$MUMBLE_GID" mumble
   usermod -ou "$MUMBLE_UID" mumble
+  echo "The mumble server will start with uid ${MUMBLE_UID} and gid ${MUMBLE_GID}"
   if [[ "$MUMBLE_CHOWN" = true ]]; then
-    echo "Changing owner of folder ${DATA_DIR}"
+    echo "Changing owner of folder ${DATA_DIR} to mumble:mumble"
     chown -R mumble:mumble "${DATA_DIR}"
   fi
-  exec runuser -u mumble -g mumble -- "$@"
 fi
 
 echo "\"${DATA_DIR}\" has the following permissions set:"
