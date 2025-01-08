@@ -41,6 +41,7 @@ cmake \
 	-Dtests=ON \
 	-Dwarnings-as-errors=OFF \
 	-Dzeroconf=OFF \
+	-DCMAKE_UNITY_BUILD=ON \
 	$MUMBLE_CMAKE_ARGS \
 	..
 
