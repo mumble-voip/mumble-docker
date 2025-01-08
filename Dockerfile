@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 as base
+FROM ubuntu:24.04 as base
 
 ADD ./scripts/* /mumble/scripts/
 WORKDIR /mumble/scripts
@@ -8,7 +8,7 @@ ARG MUMBLE_VERSION=latest
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
     libcap2 \
-    libzeroc-ice3.7 \
+    libzeroc-ice3.7t64 \
     '^libprotobuf[0-9]+$' \
     libavahi-compat-libdnssd1 \
     ca-certificates \
