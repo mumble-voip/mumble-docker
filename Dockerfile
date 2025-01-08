@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 as base
+FROM ubuntu:24.04 AS base
 
 ADD ./scripts/* /mumble/scripts/
 WORKDIR /mumble/scripts
@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 
 
-FROM base as build
+FROM base AS build
 ARG DEBIAN_FRONTEND=noninteractive
 
 ADD ./scripts/* /mumble/scripts/
