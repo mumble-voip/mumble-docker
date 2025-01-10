@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
+export PUID=${PUID:-10000}
+export PGID=${PGID:-10000}
+MUMBLE_CHOWN_DATA=${MUMBLE_CHOWN_DATA:-true}
+
 readonly DATA_DIR="/data"
 readonly BARE_BONES_CONFIG_FILE="/etc/mumble/bare_config.ini"
 readonly CONFIG_REGEX="^(\;|\#)?\ *([a-zA-Z_0-9]+)=.*"
@@ -64,8 +68,8 @@ set_config() {
 
 # Drop the user into a shell, if they so wish
 if [[ "$1" = "bash" ||  "$1" = "sh" ]]; then
-    echo "Dropping into interactive BASH session"
-    exec "${@}"
+	echo "Dropping into interactive BASH session"
+	exec "${@}"
 fi
 
 if [[ -f "$MUMBLE_CUSTOM_CONFIG_FILE" ]]; then
@@ -149,21 +153,33 @@ server_invocation+=( "-ini" "${CONFIG_FILE}")
 
 if [[ -f /run/secrets/MUMBLE_SUPERUSER_PASSWORD ]]; then
 	MUMBLE_SUPERUSER_PASSWORD="$(cat /run/secrets/MUMBLE_SUPERUSER_PASSWORD)"
-    echo "Read superuser password from container secret"
+	echo "Read superuser password from container secret"
 fi
 
 if [[ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]]; then
 	#Variable to change the superuser password
-    "${server_invocation[@]}" -supw "$MUMBLE_SUPERUSER_PASSWORD"
-    echo "Successfully configured superuser password"
+	"${server_invocation[@]}" -supw "$MUMBLE_SUPERUSER_PASSWORD"
+	echo "Successfully configured superuser password"
+fi
+
+# Set privileges for /app but only if pid 1 user is root and we are dropping privileges.
+# If container is run as an unprivileged user, it means owner already handled ownership setup on their own.
+# Running chown in that case (as non-root) will cause error
+if [[ "$(id -u)" = "0" ]] && [[ "${PUID}" != "0" ]] && [[ "${MUMBLE_CHOWN_DATA}" = true ]]; then
+	chown -R ${PUID}:${PGID} /data
 fi
 
 # Show /data permissions, in case the user needs to match the mount point access
-echo "Running Mumble server as uid=$(id -u) gid=$(id -g)"
+echo "Running Mumble server as uid=${PUID} gid=${PGID}"
 echo "\"${DATA_DIR}\" has the following permissions set:"
 echo "  $( stat ${DATA_DIR} --printf='%A, owner: \"%U\" (UID: %u), group: \"%G\" (GID: %g)' )"
 
 echo "Command run to start the service : ${server_invocation[*]}"
 echo "Starting..."
 
-exec "${server_invocation[@]}"
+# Drop privileges (when asked to) if root, otherwise run as current user
+if [[ "$(id -u)" = "0" ]] && [[ "${PUID}" != "0" ]]; then
+	su-exec ${PUID}:${PGID} "${server_invocation[@]}"
+else
+	exec "${server_invocation[@]}"
+fi

@@ -62,19 +62,18 @@ RUN /mumble/scripts/clone.sh \
     && /mumble/scripts/build.sh \
     && /mumble/scripts/copy_one_of.sh ./scripts/murmur.ini ./auxiliary_files/mumble-server.ini default_config.ini
 
+RUN git clone https://github.com/ncopa/su-exec.git /mumble/repo/su-exec \
+    && cd /mumble/repo/su-exec && make
+
 
 
 FROM base
-ARG MUMBLE_UID=10000
-ARG MUMBLE_GID=10000
-
-RUN groupadd --gid $MUMBLE_GID mumble && useradd --uid $MUMBLE_UID --gid $MUMBLE_GID mumble
 
 COPY --from=build /mumble/repo/build/mumble-server /usr/bin/mumble-server
 COPY --from=build /mumble/repo/default_config.ini /etc/mumble/bare_config.ini
+COPY --from=build --chmod=755 /mumble/repo/su-exec/su-exec /usr/local/bin/su-exec
 
-RUN mkdir -p /data && chown -R mumble:mumble /data && chown -R mumble:mumble /etc/mumble
-USER mumble
+
 EXPOSE 64738/tcp 64738/udp
 COPY entrypoint.sh /entrypoint.sh
 
