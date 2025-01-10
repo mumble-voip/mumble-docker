@@ -18,7 +18,8 @@ This is the official code of the Mumble Docker image for self-hosting the **Mumb
 
 1. [Running the container](#running-the-container)
 2. [Configuration](#configuration)
-3. [Building the container](#Building-the-container)
+3. [Building the container](#building-the-container)
+4. [More docs and usage examples in the Wiki](https://github.com/mumble-voip/mumble-docker/wiki)
 
 
 ## Running the container
