@@ -68,8 +68,8 @@ set_config() {
 
 # Drop the user into a shell, if they so wish
 if [[ "$1" = "bash" ||  "$1" = "sh" ]]; then
-    echo "Dropping into interactive BASH session"
-    exec "${@}"
+	echo "Dropping into interactive BASH session"
+	exec "${@}"
 fi
 
 if [[ -f "$MUMBLE_CUSTOM_CONFIG_FILE" ]]; then
@@ -153,13 +153,13 @@ server_invocation+=( "-ini" "${CONFIG_FILE}")
 
 if [[ -f /run/secrets/MUMBLE_SUPERUSER_PASSWORD ]]; then
 	MUMBLE_SUPERUSER_PASSWORD="$(cat /run/secrets/MUMBLE_SUPERUSER_PASSWORD)"
-    echo "Read superuser password from container secret"
+	echo "Read superuser password from container secret"
 fi
 
 if [[ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]]; then
 	#Variable to change the superuser password
-    "${server_invocation[@]}" -supw "$MUMBLE_SUPERUSER_PASSWORD"
-    echo "Successfully configured superuser password"
+	"${server_invocation[@]}" -supw "$MUMBLE_SUPERUSER_PASSWORD"
+	echo "Successfully configured superuser password"
 fi
 
 # Set privileges for /app but only if pid 1 user is root and we are dropping privileges.
@@ -179,7 +179,7 @@ echo "Starting..."
 
 # Drop privileges (when asked to) if root, otherwise run as current user
 if [[ "$(id -u)" = "0" ]] && [[ "${PUID}" != "0" ]]; then
-    su-exec ${PUID}:${PGID} "${server_invocation[@]}"
+	su-exec ${PUID}:${PGID} "${server_invocation[@]}"
 else
-    exec "${server_invocation[@]}"
+	exec "${server_invocation[@]}"
 fi
