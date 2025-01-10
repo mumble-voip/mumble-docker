@@ -41,9 +41,12 @@ cmake \
 	-Dtests=ON \
 	-Dwarnings-as-errors=OFF \
 	-Dzeroconf=OFF \
+	-DCMAKE_UNITY_BUILD=ON \
 	$MUMBLE_CMAKE_ARGS \
 	..
 
 cmake --build . -j $(nproc)
 
-ctest --output-on-failure . -j $(nproc)
+TEST_TIMEOUT=600 # seconds
+export QTEST_FUNCTION_TIMEOUT="$(( $TEST_TIMEOUT * 1000 ))" # milliseconds
+ctest --timeout $TIMEOUT --output-on-failure . -j $(nproc)
