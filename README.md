@@ -10,7 +10,7 @@ Mumble is a free, open source, low latency, high quality voice chat application.
 <p align="center"><b><a href="https://mumble.info">Mumble Website</a> • <a href="https://github.com/mumble-voip/mumble">Mumble Source</a></b></p>
 
 This is the official code of the Mumble Docker image for self-hosting the **Mumble server**. The image is available for download on
-**[Dockerhub](https://hub.docker.com/r/mumblevoip/mumble-server)**.
+**[Dockerhub](https://hub.docker.com/r/mumblevoip/mumble-server)** and the **[GHCR](https://github.com/mumble-voip/mumble-docker/pkgs/container/mumble-server)**.
 
 -----
 
