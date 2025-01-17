@@ -10,7 +10,7 @@
 set -e
 set -x
 
-if [[ "$#" < 2 ]]; then
+if [[ "$#" -lt 2 ]]; then
 	>&2 echo "Too few arguments - expected at least two"
 	exit 1
 fi
