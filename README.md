@@ -7,7 +7,7 @@
 
 Mumble is a free, open source, low latency, high quality voice chat application.
 
-<p align="center"><b><a href="https://mumble.info">Mumble Website</a> • <a href="https://github.com/mumble-voip/mumble">Mumble Source</a></b></p>
+<p style="text-align:center"><b><a href="https://mumble.info">Mumble Website</a> • <a href="https://github.com/mumble-voip/mumble">Mumble Source</a></b></p>
 
 This is the official code of the Mumble Docker image for self-hosting the **Mumble server**. The image is available for download on
 **[Dockerhub](https://hub.docker.com/r/mumblevoip/mumble-server)** and the **[GHCR](https://github.com/mumble-voip/mumble-docker/pkgs/container/mumble-server)**.
@@ -30,7 +30,7 @@ This documentation assumes that you already have Docker installed and configured
 Docker container using [docker-compose](https://docs.docker.com/compose/). Thus, we also provide instructions for that scenario (see below).
 
 In order for Mumble to store permanent data (most notably the database file (by default Mumble uses SQLite)), the image will use a
-[volume](https://docs.docker.com/storage/volumes/) which is mapped to the `/data/` path inside the image. By default the image uses a user with UID
+[volume](https://docs.docker.com/storage/volumes/) which is mapped to the `/data/` path inside the image. By default, the image uses a user with UID
 `10000` and GID of also `10000` but either can be adapted when building the image yourself (see below). You will have to make sure that all file
 permissions are set up accordingly.
 
@@ -124,24 +124,29 @@ podman run --detach \
 
 The following _additional_ variables can be set for further server configuration:
 
-| Environment Variable             | Description                                                                                                                                  |
-|----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------- |
-| `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` | Set to `true` to force the container to accept unknown settings passed as a `MUMBLE_CONFIG_` variable (see note below).                      |
-| `MUMBLE_CHOWN_DATA`              | Set to `false` to skip taking ownership of `/data` and its contents.                                                                         |
-| `MUMBLE_CUSTOM_CONFIG_FILE`      | Specify a custom config file path - **all `MUMBLE_CONFIG_` variables are IGNORED** <br/>(it's best to use a path inside the volume `/data/`) |
-| `MUMBLE_SUPERUSER_PASSWORD`      | Specifies the SuperUser (Admin) password for this server. If this is not given, a random password will be generated upon first startup.      |
-| `MUMBLE_VERBOSE`                 | Set to `true` to enable verbose logging in the server                                                                                        |
+| Environment Variable             | Description                                                                                                                                                                                                                                                        |
+|----------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` | Set to `true` to force the container to accept unknown settings passed as a `MUMBLE_CONFIG_` variable (see note below).                                                                                                                                            |
+| `MUMBLE_CHOWN_DATA`              | Set to `false` to skip taking ownership of `/data` and its contents.                                                                                                                                                                                               |
+| `MUMBLE_CUSTOM_CONFIG_FILE`      | Specify a custom config file path - **all `MUMBLE_CONFIG_` variables are IGNORED** <br/>(it's best to use a path inside the volume `/data/`)                                                                                                                       |
+| `MUMBLE_SUPERUSER_PASSWORD`      | Specifies the SuperUser (Admin) password for this server. If this is not given, a random password will be generated upon first startup.                                                                                                                            |
+| `MUMBLE_VERBOSE`                 | Set to `true` to enable verbose logging in the server                                                                                                                                                                                                              |
+| `MUMBLE_DISABLE_ICE`             | Defaults to `false` (=ICE enabled); Set to `true` to disable the [mumble-server ICE RPC integration](https://www.mumble.info/documentation/administration/config-file/#ice) (this can help when using --network-mode=host for the docker container)                |
+| `MUMBLE_UNAME_ENABLE`            | Defaults to `false`; Set to `true` to let the mumble-server start as root, and then drop to an unprivileged user after reading the configuration (can help f.e. when using letsencrypt certificates which require the keys to stay at 600 (root only) permissions) |
+| `MUMBLE_UNAME_UID`               | Customize the uid (user id) for the mumble account the server drops privileges to when using uname.                                                                                                                                                                |
+| `MUMBLE_UNAME_GID`               | Customize the gid (group id) for the mumble account the server drops privileges to when using uname.                                                                                                                                                               |
+| `PUID`                           | Customize the uid (user id) for the server is started as if `MUMBLE_UNAME_ENABLE` is not set to `true`.                                                                                                                                                            |
+| `PGID`                           | Customize the gid (group id) for the server is started as if `MUMBLE_UNAME_ENABLE` is not set to `true`.                                                                                                                                                           |
 
 
 Note: In the unlikely case where a `<configName>` setting is unknown to the container, startup will fail with the following error. 
-
 
 ```
 mumble-server  | [ERROR]: Unable to find config corresponding to variable "<configName>"
 mumble-server exited with code 1
 ```
 
-The root cause of this error is the fact that this setting is incorrectly registered in the Mumble server code. You can workaround this error by 
+The root cause of this error is the fact that this setting is incorrectly registered in the Mumble server code. You can work around this error by 
 setting the `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` environment variable to `true` and spelling `<configName>` exactly as written in the
 [Murmur.ini](https://wiki.mumble.info/wiki/Murmur.ini) documentation.
 

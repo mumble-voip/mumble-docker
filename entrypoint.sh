@@ -1,15 +1,22 @@
 #!/usr/bin/env bash
 set -e
 
-export PUID=${PUID:-10000}
-export PGID=${PGID:-10000}
+PUID=${PUID:-$(id -u)}
+PGID=${PGID:-$(id -g)}
 MUMBLE_CHOWN_DATA=${MUMBLE_CHOWN_DATA:-true}
+
+MUMBLE_UNAME_ENABLE=${MUMBLE_UNAME_ENABLE:-false}
+MUMBLE_UNAME_UID=${MUMBLE_UNAME_UID:-10000}
+MUMBLE_UNAME_GID=${MUMBLE_UNAME_GID:-10000}
+
+MUMBLE_DISABLE_ICE=${MUMBLE_DISABLE_ICE:-false}
 
 readonly DATA_DIR="/data"
 readonly BARE_BONES_CONFIG_FILE="/etc/mumble/bare_config.ini"
 readonly CONFIG_REGEX="^(\;|\#)?\ *([a-zA-Z_0-9]+)=.*"
 CONFIG_FILE="${DATA_DIR}/mumble_server_config.ini"
 
+# shellcheck disable=SC2034
 readonly SENSITIVE_CONFIGS=(
 	"dbPassword"
 	"icesecretread"
@@ -114,21 +121,19 @@ else
 				exit 1
 			fi
 		else
-			set_config "$config_option" "$(cat $secret_file)"
+			set_config "$config_option" "$(cat "$secret_file")"
 		fi
 	done < <( ls /run/secrets | sed -n 's/^MUMBLE_CONFIG_//p' )
 
 	# Apply default settings if they're missing
 
-	# Compatibilty with old DB filename
+	# Compatibility with old DB filename
 	OLD_DB_FILE="${DATA_DIR}/murmur.sqlite"
 	if [[ -f "$OLD_DB_FILE" ]]; then
 		set_config "database" "$OLD_DB_FILE" true
 	else
 		set_config "database" "${DATA_DIR}/mumble-server.sqlite" true
 	fi
-
-	set_config "ice" "\"tcp -h 127.0.0.1 -p 6502\"" true
 
 	if ! array_contains "used_configs" "welcometextfile"; then
 		set_config "welcometext" "\"<br />Welcome to this server, running the official Mumble Docker image.<br />Enjoy your stay!<br />\"" true
@@ -137,11 +142,16 @@ else
 	set_config "port" 64738 true
 	set_config "users" 100 true
 
-	{ # Add ICE section
-		echo -e "\n[Ice]"
-		echo "Ice.Warn.UnknownProperties=1"
-		echo "Ice.MessageSizeMax=65536"
-	} >> "$CONFIG_FILE"
+  if [[ "${MUMBLE_DISABLE_ICE}" == true ]]; then
+	  set_config "ice" ""
+  else
+	  set_config "ice" "\"tcp -h 127.0.0.1 -p 6502\"" true
+    { # Add ICE section
+      echo -e "\n[Ice]"
+      echo "Ice.Warn.UnknownProperties=1"
+      echo "Ice.MessageSizeMax=65536"
+    } >> "$CONFIG_FILE"
+  fi
 fi
 
 # Additional environment variables
@@ -165,12 +175,25 @@ fi
 # Set privileges for /app but only if pid 1 user is root and we are dropping privileges.
 # If container is run as an unprivileged user, it means owner already handled ownership setup on their own.
 # Running chown in that case (as non-root) will cause error
-if [[ "$(id -u)" = "0" ]] && [[ "${PUID}" != "0" ]] && [[ "${MUMBLE_CHOWN_DATA}" = true ]]; then
-	chown -R ${PUID}:${PGID} /data
+if [[ "$(id -u)" = 0 && ( "${PUID}" != 0 || "${MUMBLE_UNAME_ENABLE}" == true ) && "${MUMBLE_CHOWN_DATA}" == true ]]; then
+  if [[ "${MUMBLE_UNAME_ENABLE}" == true ]]; then
+    # if we are here, root with uname enabled
+    if [[ ( "$(id -u mumble)" -ne ${MUMBLE_UNAME_UID} ) || ( "$(getent group mumble | cut -d: -f3 )" -ne ${MUMBLE_UNAME_GID} ) ]]; then
+      # MUMBLE_UNAME_UID or MUMBLE_UNAME_GID have changed -> adjust mumble/uname uid+gid
+      groupmod -og "${MUMBLE_UNAME_GID}" mumble
+      usermod -ou "${MUMBLE_UNAME_UID}" -g "${MUMBLE_UNAME_GID}" mumble
+    fi
+	  set_config "uname" "mumble"
+    chown -R "${MUMBLE_UNAME_UID}":"${MUMBLE_UNAME_GID}" /data
+    echo "Running Mumble server as uid=${MUMBLE_UNAME_UID} gid=${MUMBLE_UNAME_GID}"
+  else
+    # if we are here, root with puid
+    chown -R "${PUID}":"${PGID}" /data
+    echo "Running Mumble server as uid=${PUID} gid=${PGID}"
+  fi
 fi
 
 # Show /data permissions, in case the user needs to match the mount point access
-echo "Running Mumble server as uid=${PUID} gid=${PGID}"
 echo "\"${DATA_DIR}\" has the following permissions set:"
 echo "  $( stat ${DATA_DIR} --printf='%A, owner: \"%U\" (UID: %u), group: \"%G\" (GID: %g)' )"
 
@@ -178,8 +201,9 @@ echo "Command run to start the service : ${server_invocation[*]}"
 echo "Starting..."
 
 # Drop privileges (when asked to) if root, otherwise run as current user
-if [[ "$(id -u)" = "0" ]] && [[ "${PUID}" != "0" ]]; then
-	su-exec ${PUID}:${PGID} "${server_invocation[@]}"
+if [[ "$(id -u)" = 0 && "${PUID}" != "$(id -u)" && ! "${MUMBLE_UNAME_ENABLE}" == true ]]; then
+  su-exec "${PUID}":"${PGID}" "${server_invocation[@]}"
 else
+  # start up with root (or we are in a rootless context/container started with --user parameter)
 	exec "${server_invocation[@]}"
 fi

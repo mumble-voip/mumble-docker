@@ -34,7 +34,7 @@ fi
 
 cmake \
 	-DCMAKE_BUILD_TYPE=Release \
-	-DBUILD_NUMBER=$buildNumber \
+	-DBUILD_NUMBER="$buildNumber" \
 	-Dclient=OFF \
 	-Dserver=ON \
 	-Dice=ON \
