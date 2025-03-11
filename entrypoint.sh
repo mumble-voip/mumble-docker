@@ -179,7 +179,7 @@ echo "Starting..."
 
 # Drop privileges (when asked to) if root, otherwise run as current user
 if [[ "$(id -u)" = "0" ]] && [[ "${PUID}" != "0" ]]; then
-	su-exec ${PUID}:${PGID} "${server_invocation[@]}"
+	exec su-exec ${PUID}:${PGID} "${server_invocation[@]}"
 else
 	exec "${server_invocation[@]}"
 fi
