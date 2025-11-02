@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     '^libprotobuf[0-9]+$' \
     libavahi-compat-libdnssd1 \
     ca-certificates \
+    sqlite3 \
+    mysql-client \
+    libpq5 \
     && export QT_VERSION="$( /mumble/scripts/choose_qt_version.sh )" \
     && /mumble/scripts/install_qt.sh \
     # Workaround for systems like CentOS 7 which won't load libQt5Core.so as expected:
@@ -46,6 +49,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     libzeroc-ice-dev \
     python3 \
     git \
+    libsqlite3-dev \
+    libmysqlclient-dev \
+    libpq-dev \
     && export QT_VERSION="$( /mumble/scripts/choose_qt_version.sh )" \
     && /mumble/scripts/install_qt_dev.sh \
     && apt-get clean \
