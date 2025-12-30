@@ -26,6 +26,54 @@ readarray -t existing_config_options < <(sed -En "s/$CONFIG_REGEX/\2/p" "$BARE_B
 declare -a server_invocation=("${@}")
 declare -a used_configs
 
+server_version="$( "${server_invocation[@]}" --version | grep -o "[[:digit:]]\+\.[[:digit:]]\+\.[[:digit:]]\+" )"
+if [[ -z "$server_version" ]]; then
+	>&2 echo "Failed at obtaining/parsing server version"
+	exit 1
+fi
+
+echo "Using Mumble server version ${server_version}"
+
+# https://stackoverflow.com/a/5257398
+version_components=( ${server_version//./ } )
+if [[ ${#version_components[@]} -ne 3 ]]; then
+	>&2 echo "Server version doesn't have the expected number of components"
+fi
+
+if [[ ${version_components[0]} -gt 1 ]] || [[ ${version_components[1]} -gt 5 ]]; then
+	use_legacy_cli_args=false
+else
+	use_legacy_cli_args=true
+fi
+
+normalize_cli_arg() {
+	local arg="$1"
+
+	# CLI argument names have changed in 1.6, so if we're using an earlier version
+	# we have to back-translate the argument names for things to work out
+	if [[ "$use_legacy_cli_args" = "true" ]]; then
+		case "$arg" in
+			"--foreground")
+				arg="-fg"
+				;;
+			"--verbose")
+				arg="-v"
+				;;
+			"--ini")
+				arg="-ini"
+				;;
+			"--set-su-pw")
+				arg="-supw"
+				;;
+		esac
+	fi
+
+	echo "$arg"
+}
+
+# To keep the server from detaching
+server_invocation+=( "$( normalize_cli_arg "--foreground" )" )
+
 normalize_name() {
 	local uppercase="${1^^}"
 	echo "${uppercase//_/}"
@@ -146,10 +194,10 @@ fi
 
 # Additional environment variables
 
-[[ "$MUMBLE_VERBOSE" = true ]] && server_invocation+=( "-v" )
+[[ "$MUMBLE_VERBOSE" = true ]] && server_invocation+=( "$( normalize_cli_arg "--verbose" )" )
 
 # Make sure the correct configuration file is used
-server_invocation+=( "-ini" "${CONFIG_FILE}")
+server_invocation+=( "$( normalize_cli_arg "--ini" )" "${CONFIG_FILE}")
 
 if [[ -f /run/secrets/MUMBLE_SUPERUSER_PASSWORD ]]; then
 	MUMBLE_SUPERUSER_PASSWORD="$(cat /run/secrets/MUMBLE_SUPERUSER_PASSWORD)"
@@ -158,7 +206,7 @@ fi
 
 if [[ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]]; then
 	#Variable to change the superuser password
-	"${server_invocation[@]}" -supw "$MUMBLE_SUPERUSER_PASSWORD"
+	"${server_invocation[@]}" "$( normalize_cli_arg "--set-su-pw" )" "$MUMBLE_SUPERUSER_PASSWORD"
 	echo "Successfully configured superuser password"
 fi
 
