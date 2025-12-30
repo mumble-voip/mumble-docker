@@ -85,5 +85,5 @@ COPY entrypoint.sh /entrypoint.sh
 
 VOLUME ["/data"]
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/usr/bin/mumble-server", "-fg"]
+CMD ["/usr/bin/mumble-server"]
 
