@@ -164,7 +164,7 @@ else
 		else
 			set_config "$config_option" "$(cat $secret_file)"
 		fi
-	done < <( ls /run/secrets | sed -n 's/^MUMBLE_CONFIG_//p' )
+	done < <( ls /run/secrets 2> /dev/null | sed -n 's/^MUMBLE_CONFIG_//p' )
 
 	# Apply default settings if they're missing
 
