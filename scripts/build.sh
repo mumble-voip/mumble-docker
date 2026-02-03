@@ -49,4 +49,4 @@ cmake --build . -j $(nproc)
 
 TEST_TIMEOUT=600 # seconds
 export QTEST_FUNCTION_TIMEOUT="$(( $TEST_TIMEOUT * 1000 ))" # milliseconds
-ctest --timeout $TIMEOUT --output-on-failure . -j $(nproc)
+ctest --timeout $TEST_TIMEOUT --output-on-failure . -j $(nproc)
