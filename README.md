@@ -101,8 +101,8 @@ services:
             MUMBLE_CONFIG_SENDVERSION: false
             MUMBLE_CONFIG_WELCOMETEXT: 'Hello World'
 
-            # For string values with special characters (e.g. comma),
-            # wrap the value in quotes
+            # For MUMBLE_CONFIG_ string values with special
+            # characters (e.g. comma), wrap the value in quotes
             MUMBLE_CONFIG_USERNAME: '"^[-_a-z0-9]{3,15}$"'
 ```
 
