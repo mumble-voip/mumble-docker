@@ -92,6 +92,20 @@ You can specify these environment variables when starting the container using th
 $ docker run -e "MUMBLE_CONFIG_SERVER_PASSWORD=123"
 ```
 
+You can specify these environment varibles in docker-compose using the `environment` attribute as documented [here](https://docs.docker.com/compose/how-tos/environment-variables/set-environment-variables/):
+```yaml
+services:
+    mumble-server:
+        environment:
+            MUMBLE_CONFIG_USERS: 100
+            MUMBLE_CONFIG_SENDVERSION: false
+            MUMBLE_CONFIG_WELCOMETEXT: 'Hello World'
+
+            # For MUMBLE_CONFIG_ string values with special
+            # characters (e.g. comma), wrap the value in quotes
+            MUMBLE_CONFIG_USERNAME: '"^[-_a-z0-9]{3,15}$"'
+```
+
 As an alternative to environment variables, docker or podman secrets can be used to read configuration options from files which follow the `MUMBLE_CONFIG_<config_name>` name pattern and are located in the `/run/secrets` directory at runtime. The same rules to naming environment variables apply to these files as well.
 
 Please consult the documentation of docker or podman on how to use secrets for further details.
