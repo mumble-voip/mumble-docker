@@ -71,19 +71,24 @@ RUN /mumble/scripts/clone.sh \
 RUN git clone https://github.com/ncopa/su-exec.git /mumble/repo/su-exec \
     && cd /mumble/repo/su-exec && make
 
-
-
+FROM goacme/lego:latest AS lego
 FROM base
 
+COPY --from=lego /lego /usr/local/bin/lego
 COPY --from=build /mumble/repo/build/mumble-server /usr/bin/mumble-server
 COPY --from=build /mumble/repo/default_config.ini /etc/mumble/bare_config.ini
 COPY --from=build --chmod=755 /mumble/repo/su-exec/su-exec /usr/local/bin/su-exec
 
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    supervisor \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 64738/tcp 64738/udp
 COPY entrypoint.sh /entrypoint.sh
+COPY acme_install_cert.sh /usr/local/bin/acme_install_cert
+COPY acme_manage_cert.sh /usr/local/bin/acme_manage_cert
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 VOLUME ["/data"]
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/usr/bin/mumble-server"]
-
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
