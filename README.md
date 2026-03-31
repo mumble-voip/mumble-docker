@@ -147,7 +147,7 @@ The following _additional_ variables can be set for further server configuration
 | `MUMBLE_VERBOSE`                 | Set to `true` to enable verbose logging in the server                                                                                        |
 
 
-Note: In the unlikely case where a `<configName>` setting is unknown to the container, startup will fail with the following error. 
+Note: In the unlikely case where a `<configName>` setting is unknown to the container, startup will fail with the following error.
 
 
 ```
@@ -155,7 +155,7 @@ mumble-server  | [ERROR]: Unable to find config corresponding to variable "<conf
 mumble-server exited with code 1
 ```
 
-The root cause of this error is the fact that this setting is incorrectly registered in the Mumble server code. You can workaround this error by 
+The root cause of this error is the fact that this setting is incorrectly registered in the Mumble server code. You can workaround this error by
 setting the `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` environment variable to `true` and spelling `<configName>` exactly as written in the
 [Murmur.ini](https://wiki.mumble.info/wiki/Murmur.ini) documentation.
 
@@ -180,8 +180,8 @@ process employed by this Docker image.
 
 ### Using a different UID/GID
 
-You can use Docker-standard `PUID` and `PGID` environment variables to set the UID and GID you wish mumble-server to run as and who will own the 
-files in `/data`. The default is UID:GID 10000:10000. Unless the environment variable `MUMBLE_CHOWN_DATA` is set to `false` the container will 
+You can use Docker-standard `PUID` and `PGID` environment variables to set the UID and GID you wish mumble-server to run as and who will own the
+files in `/data`. The default is UID:GID 10000:10000. Unless the environment variable `MUMBLE_CHOWN_DATA` is set to `false` the container will
 take ownership of `/data` and any of its contents at container launch.
 
 ### Using custom build options
@@ -206,4 +206,3 @@ Got permission denied while trying to connect to the Docker daemon socket
 you most likely invoked `docker` as a non-root user. In order for that to be possible, you need to add yourself to the `docker` group on your system.
 See the [official docs](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user) on this topic for further
 information.
-
