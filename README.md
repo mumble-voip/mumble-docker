@@ -114,6 +114,22 @@ Please consult the documentation of docker or podman on how to use secrets for f
   - [podman run with secrets](https://docs.podman.io/en/latest/markdown/podman-run.1.html#secret-secret-opt-opt)
   - [podman secret subcommand](https://docs.podman.io/en/latest/markdown/podman-secret.1.html)
 
+### Automatic TLS Certificate Management
+
+The Mumble docker image contains the ACME client [lego](https://go-acme.github.io/lego/) which may be used to automatically issue, renew and reload trusted TLS certificates from Let's Encrypt and other ACME enabled CAs.
+In order to make use of this feature you have to mount a persistant volume to `/etc/acme` and set some environment variables:
+
+- `ACME_ACCOUNT_MAIL`: Will be used to register an account with the given ACME service.
+- `ACME_SERVER`: The API URL of the ACME service. Defaults to Let's Encrypt. You may set this for example to `https://acme-staging-v02.api.letsencrypt.org/directory` in order to use the staging environment.
+- `ACME_DOMAIN`: The domain of your Mumble server. The certificate will be ordered for this domain.
+- `ACME_HTTP`: Set this to any value to use the HTTP-01 challenge. You have to expose your Mumble server directly to the internet via port 80 (not 443!).
+- `ACME_DNS`: Set this to the name of a [DNS provider supported by `lego`](https://go-acme.github.io/lego/dns/index.html). You have to provide credentials for the DNS API as mentioned in the `lego` docs.
+- `ACME_DNS_RESOLVERS`: You may set this to a semicolon separated list of DNS servers to use for validation. Set this to your DNS providers servers if you experience slow validations.
+
+If you have special requirements you can set the `ACME_LEGO_CMD` variable to a full `lego` command to make use of all features of `lego`.
+If you do so, you may omit all other `ACME_*` variables, but have to set the same values in your `ACME_LEGO_CMD` manually.
+Please do not include the `run` or `renew` subcommands, as these will be appended by the certificate management script.
+
 ### Example: Running the container with secrets using podman
 To set the server password and superuser password using podman secrets, the following series of commands can be used:
 
@@ -147,7 +163,7 @@ The following _additional_ variables can be set for further server configuration
 | `MUMBLE_VERBOSE`                 | Set to `true` to enable verbose logging in the server                                                                                        |
 
 
-Note: In the unlikely case where a `<configName>` setting is unknown to the container, startup will fail with the following error. 
+Note: In the unlikely case where a `<configName>` setting is unknown to the container, startup will fail with the following error.
 
 
 ```
@@ -155,7 +171,7 @@ mumble-server  | [ERROR]: Unable to find config corresponding to variable "<conf
 mumble-server exited with code 1
 ```
 
-The root cause of this error is the fact that this setting is incorrectly registered in the Mumble server code. You can workaround this error by 
+The root cause of this error is the fact that this setting is incorrectly registered in the Mumble server code. You can workaround this error by
 setting the `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` environment variable to `true` and spelling `<configName>` exactly as written in the
 [Murmur.ini](https://wiki.mumble.info/wiki/Murmur.ini) documentation.
 
@@ -180,8 +196,8 @@ process employed by this Docker image.
 
 ### Using a different UID/GID
 
-You can use Docker-standard `PUID` and `PGID` environment variables to set the UID and GID you wish mumble-server to run as and who will own the 
-files in `/data`. The default is UID:GID 10000:10000. Unless the environment variable `MUMBLE_CHOWN_DATA` is set to `false` the container will 
+You can use Docker-standard `PUID` and `PGID` environment variables to set the UID and GID you wish mumble-server to run as and who will own the
+files in `/data`. The default is UID:GID 10000:10000. Unless the environment variable `MUMBLE_CHOWN_DATA` is set to `false` the container will
 take ownership of `/data` and any of its contents at container launch.
 
 ### Using custom build options
@@ -206,4 +222,3 @@ Got permission denied while trying to connect to the Docker daemon socket
 you most likely invoked `docker` as a non-root user. In order for that to be possible, you need to add yourself to the `docker` group on your system.
 See the [official docs](https://docs.docker.com/engine/install/linux-postinstall/#manage-docker-as-a-non-root-user) on this topic for further
 information.
-
