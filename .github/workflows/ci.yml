@@ -8,7 +8,7 @@ jobs:
     build_1_5_857:
         uses: ./.github/workflows/build_and_publish.yml
         with:
-            mumble_version: "v1.5.857"
+            mumble_version: "v1.5.901"
             docker_version: '0'
             publish: false
             update_latest: true
