@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
+log() {
+	echo "[mumble] $*"
+}
+
 export PUID=${PUID:-10000}
 export PGID=${PGID:-10000}
 MUMBLE_CHOWN_DATA=${MUMBLE_CHOWN_DATA:-true}
@@ -28,16 +32,16 @@ declare -a used_configs
 
 server_version="$( "${server_invocation[@]}" --version | grep -o "[[:digit:]]\+\.[[:digit:]]\+\.[[:digit:]]\+" )"
 if [[ -z "$server_version" ]]; then
-	>&2 echo "Failed at obtaining/parsing server version"
+	>&2 log "Failed at obtaining/parsing server version"
 	exit 1
 fi
 
-echo "Using Mumble server version ${server_version}"
+log "Using Mumble server version ${server_version}"
 
 # https://stackoverflow.com/a/5257398
 version_components=( ${server_version//./ } )
 if [[ ${#version_components[@]} -ne 3 ]]; then
-	>&2 echo "Server version doesn't have the expected number of components"
+	>&2 log "Server version doesn't have the expected number of components"
 fi
 
 if [[ ${version_components[0]} -gt 1 ]] || [[ ${version_components[1]} -gt 5 ]]; then
@@ -104,9 +108,9 @@ set_config() {
 	[[ "$apply_value" != true ]] && return 0
 
 	if array_contains "SENSITIVE_CONFIGS" "$config_name"; then
-		echo "Setting config \"$config_name\" to: *********"
+		log "Setting config \"$config_name\" to: *********"
 	else
-		echo "Setting config \"$config_name\" to: '$config_value'"
+		log "Setting config \"$config_name\" to: '$config_value'"
 	fi
 	used_configs+=("$config_name")
 
@@ -115,14 +119,14 @@ set_config() {
 }
 
 # Drop the user into a shell, if they so wish
-if [[ "$1" = "bash" ||  "$1" = "sh" ]]; then
-	echo "Dropping into interactive BASH session"
+if [[ "$1" = "bash" ||	"$1" = "sh" ]]; then
+	log "Dropping into interactive BASH session"
 	exec "${@}"
 fi
 
 if [[ -f "$MUMBLE_CUSTOM_CONFIG_FILE" ]]; then
-	echo "Using manually specified config file at $MUMBLE_CUSTOM_CONFIG_FILE"
-	echo "All MUMBLE_CONFIG variables will be ignored"
+	log "Using manually specified config file at $MUMBLE_CUSTOM_CONFIG_FILE"
+	log "All MUMBLE_CONFIG variables will be ignored"
 	CONFIG_FILE="$MUMBLE_CUSTOM_CONFIG_FILE"
 else
 	# Ensures the config file is empty, starting from a clean slate
@@ -136,10 +140,10 @@ else
 
 		if [[ -z "$config_option" ]]; then
 			if [[ "$MUMBLE_ACCEPT_UNKNOWN_SETTINGS" = true ]]; then
-				echo "[WARNING]: Unable to find config corresponding to variable \"$var\". Make sure that it is correctly spelled, using it as-is"
+				log "[WARNING]: Unable to find config corresponding to variable \"$var\". Make sure that it is correctly spelled, using it as-is"
 				set_config "$var" "$value"
 			else
-				>&2 echo "[ERROR]: Unable to find config corresponding to variable \"$var\""
+				>&2 log "[ERROR]: Unable to find config corresponding to variable \"$var\""
 				exit 1
 			fi
 		else
@@ -155,10 +159,10 @@ else
 		secret_file="/run/secrets/MUMBLE_CONFIG_$var"
 		if [[ -z "$config_option" ]]; then
 			if [[ "$MUMBLE_ACCEPT_UNKNOWN_SETTINGS" = true ]]; then
-				echo "[WARNING]: Unable to find config corresponding to container secret \"$secret_file\". Make sure that it is correctly spelled, using it as-is"
+				log "[WARNING]: Unable to find config corresponding to container secret \"$secret_file\". Make sure that it is correctly spelled, using it as-is"
 				set_config "$var" "$value"
 			else
-				>&2 echo "[ERROR]: Unable to find config corresponding to container secret \"$secret_file\""
+				>&2 log "[ERROR]: Unable to find config corresponding to container secret \"$secret_file\""
 				exit 1
 			fi
 		else
@@ -185,6 +189,14 @@ else
 	set_config "port" 64738 true
 	set_config "users" 100 true
 
+	if [[ -n "$ACME_DOMAIN" || -n "$ACME_LEGO_CMD" ]]; then
+		if array_contains "used_configs" "sslCert" || array_contains "used_configs" "sslKey"; then
+			log "[WARNING] Overwriting sslKey/sslCert config since automatic certificate management is enabled"
+		fi
+		set_config "sslCert" "/data/acme/mumble.crt" false
+		set_config "sslKey" "/data/acme/mumble.key" false
+	fi
+
 	{ # Add ICE section
 		echo -e "\n[Ice]"
 		echo "Ice.Warn.UnknownProperties=1"
@@ -201,13 +213,13 @@ server_invocation+=( "$( normalize_cli_arg "--ini" )" "${CONFIG_FILE}")
 
 if [[ -f /run/secrets/MUMBLE_SUPERUSER_PASSWORD ]]; then
 	MUMBLE_SUPERUSER_PASSWORD="$(cat /run/secrets/MUMBLE_SUPERUSER_PASSWORD)"
-	echo "Read superuser password from container secret"
+	log "Read superuser password from container secret"
 fi
 
 if [[ -n "${MUMBLE_SUPERUSER_PASSWORD}" ]]; then
 	#Variable to change the superuser password
 	"${server_invocation[@]}" "$( normalize_cli_arg "--set-su-pw" )" "$MUMBLE_SUPERUSER_PASSWORD"
-	echo "Successfully configured superuser password"
+	log "Successfully configured superuser password"
 fi
 
 # Set privileges for /app but only if pid 1 user is root and we are dropping privileges.
@@ -217,13 +229,20 @@ if [[ "$(id -u)" = "0" ]] && [[ "${PUID}" != "0" ]] && [[ "${MUMBLE_CHOWN_DATA}"
 	chown -R ${PUID}:${PGID} /data
 fi
 
-# Show /data permissions, in case the user needs to match the mount point access
-echo "Running Mumble server as uid=${PUID} gid=${PGID}"
-echo "\"${DATA_DIR}\" has the following permissions set:"
-echo "  $( stat ${DATA_DIR} --printf='%A, owner: \"%U\" (UID: %u), group: \"%G\" (GID: %g)' )"
+if [[ -n "$ACME_DOMAIN" || -n "$ACME_LEGO_CMD" ]]; then
+	while [[ ! -f "/data/acme/mumble.crt" ]]; do
+		log "Waiting for '/data/acme/mumble.crt' to be created"
+		sleep 20
+	done
+fi
 
-echo "Command run to start the service : ${server_invocation[*]}"
-echo "Starting..."
+# Show /data permissions, in case the user needs to match the mount point access
+log "Running Mumble server as uid=${PUID} gid=${PGID}"
+log "\"${DATA_DIR}\" has the following permissions set:"
+log "  $( stat ${DATA_DIR} --printf='%A, owner: \"%U\" (UID: %u), group: \"%G\" (GID: %g)' )"
+
+log "Command run to start the service : ${server_invocation[*]}"
+log "Starting..."
 
 # Drop privileges (when asked to) if root, otherwise run as current user
 if [[ "$(id -u)" = "0" ]] && [[ "${PUID}" != "0" ]]; then
