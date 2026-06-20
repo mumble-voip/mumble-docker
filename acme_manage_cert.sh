@@ -7,8 +7,8 @@ log()
 	echo "[mumble-cert-manager] $*"
 }
 
-if [[ -z "$ACME_DOMAIN" && -z "$ACME_LEGO_CMD" ]]; then
-	log "No automatic cert management configured. Goodbye."
+if [[ -z "$ACME_DOMAIN" && -z "$ACME_LEGO_ARGS" ]]; then
+	log "No automatic certificate management configured. Goodbye."
 	sleep infinity # We just let the script hang forever so that supervisord does not put it in a restart loop
 fi
 
@@ -22,8 +22,8 @@ if [[ ! -d "$LEGO_DIR" ]]; then
 fi
 
 # Build a lego command if the user did not provide one
-if [[ -n "$ACME_LEGO_CMD" ]]; then
-	LEGO_CMD="$ACME_LEGO_CMD"
+if [[ -n "$ACME_LEGO_ARGS" ]]; then
+	LEGO_ARGS="$ACME_LEGO_ARGS"
 else
 	SERVER="${ACME_SERVER:-https://acme-v02.api.letsencrypt.org/directory}"
 	DOMAIN="${ACME_DOMAIN}"
@@ -32,16 +32,16 @@ else
 		>&2 log "[ERROR] Variable ACME_ACCOUNT_MAIL is undefined"
 		exit 1
 	fi
-	LEGO_CMD=(lego --email "$ACCOUNT_MAIL" --domains "$DOMAIN" --server "$SERVER" --path "$LEGO_DIR" --accept-tos)
+	LEGO_ARGS=(--email "$ACCOUNT_MAIL" --domains "$DOMAIN" --server "$SERVER" --path "$LEGO_DIR" --accept-tos)
 
 	if [[ -n "$ACME_HTTP" ]]; then
-		LEGO_CMD+=(--http)
+		LEGO_ARGS+=(--http)
 	elif [[ -n "$ACME_DNS" ]]; then
-		LEGO_CMD+=(--dns "$ACME_DNS")
+		LEGO_ARGS+=(--dns "$ACME_DNS")
 		if [[ -n "$ACME_DNS_RESOLVERS" ]]; then
 			IFS=';' read -ra resolvers <<< "$ACME_DNS_RESOLVERS"
 			for resolver in "${resolvers[@]}"; do
-				LEGO_CMD+=(--dns.resolvers "$resolver")
+				LEGO_ARGS+=(--dns.resolvers "$resolver")
 			done
 		fi
 	else
@@ -49,16 +49,14 @@ else
 		>&2 log "[ERROR] No ACME method configured. Set ACME_HTTP for HTTP-01 challenge or set ACME_DNS to one of the providers listed here: https://go-acme.github.io/lego/dns/index.html"
 		exit 1
 	fi
-
 fi
 
-log "Issuing initial certificate for $DOMAIN. Mumble startup might be delayed"
-"${LEGO_CMD[@]}" run --run-hook acme_install_cert
+log "Mumble startup might be delayed on the initial certificate request"
 
 # Renewal loop
 while true; do
-	log "Checking renewal..."
-	"${LEGO_CMD[@]}" renew --renew-hook acme_install_cert
+	log "Trying to request/renew the TLS certificate"
+	lego run "${LEGO_ARGS[@]}" --deploy-hook acme_install_cert...
 
 	log "Sleeping 12h before renewal check..."
 	sleep $((60 * 60 * 12))
