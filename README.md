@@ -117,7 +117,7 @@ Please consult the documentation of docker or podman on how to use secrets for f
 ### Automatic TLS Certificate Management
 
 The Mumble docker image contains the ACME client [lego](https://go-acme.github.io/lego/) which may be used to automatically issue, renew and reload trusted TLS certificates from Let's Encrypt and other ACME enabled CAs.
-In order to make use of this feature you have to mount a persistant volume to `/etc/acme` and set some environment variables:
+In order to make use of this feature you have to mount a persistent volume to `/etc/acme` and set some environment variables:
 
 - `ACME_ACCOUNT_MAIL`: Will be used to register an account with the given ACME service.
 - `ACME_SERVER`: The API URL of the ACME service. Defaults to Let's Encrypt. You may set this for example to `https://acme-staging-v02.api.letsencrypt.org/directory` in order to use the staging environment.
