@@ -126,7 +126,8 @@ In order to make use of this feature you have to mount a persistent volume to `/
 - `ACME_DNS`: Set this to the name of a [DNS provider supported by `lego`](https://go-acme.github.io/lego/dns/index.html). You have to provide credentials for the DNS API as mentioned in the `lego` docs.
 - `ACME_DNS_RESOLVERS`: You may set this to a semicolon separated list of DNS servers to use for validation. Set this to your DNS providers servers if you experience slow validations.
 
-If you have special requirements you can set the `ACME_LEGO_CMD` variable to a full `lego` command to make use of all features of `lego`.
+If you have special requirements you can set the `ACME_LEGO_ARGS` variable to make use of all features of `lego`.
+The contents of this variable will be appended to `lego run`.
 If you do so, you may omit all other `ACME_*` variables, but have to set the same values in your `ACME_LEGO_CMD` manually.
 Please do not include the `run` or `renew` subcommands, as these will be appended by the certificate management script.
 
