@@ -116,7 +116,8 @@ Please consult the documentation of docker or podman on how to use secrets for f
 
 ### Automatic TLS Certificate Management
 
-The Mumble docker image contains the ACME client [lego](https://go-acme.github.io/lego/) which may be used to automatically issue, renew and reload trusted TLS certificates from Let's Encrypt and other ACME enabled CAs.
+Any Mumble docker image has a variant that contains the `-acme` suffix (e.g. `latest-acme`).
+These docker images contain the ACME client [lego](https://go-acme.github.io/lego/) which may be used to automatically issue, renew and reload trusted TLS certificates from Let's Encrypt and other ACME enabled CAs.
 In order to make use of this feature you have to mount a persistent volume to `/etc/acme` and set some environment variables:
 
 - `ACME_ACCOUNT_MAIL`: Will be used to register an account with the given ACME service.
@@ -130,6 +131,12 @@ If you have special requirements you can set the `ACME_LEGO_ARGS` variable to ma
 The contents of this variable will be appended to `lego run`.
 If you do so, you may omit all other `ACME_*` variables, but have to set the same values in your `ACME_LEGO_CMD` manually.
 Please do not include the `run` or `renew` subcommands, as these will be appended by the certificate management script.
+
+#### Differences between the regular image and the `-acme` image
+
+The images containing the ACME client come with some additional restrictions compared to the regular image:
+- Mumble is not PID 1, because a process manager is added to run multiple processes in a single docker image. You cannot send signals to Mumble via `docker kill`.
+- You can only set a different UID/GID via specifying the `PUID`/`PGID` variables. It is not possible to start the image as a different user via the `docker run --user` flag. Note that privileges will be dropped prior to launching Mumble, so the server will _never_ run as `root`.
 
 ### Example: Running the container with secrets using podman
 To set the server password and superuser password using podman secrets, the following series of commands can be used:
@@ -181,16 +188,22 @@ setting the `MUMBLE_ACCEPT_UNKNOWN_SETTINGS` environment variable to `true` and 
 
 After having cloned this repository, you can just run
 ```bash
-$ docker build .
+$ docker build --target mumble .
 ```
 in order to build a Mumble server from the latest commit in the upstream [master branch](https://github.com/mumble-voip/mumble/commits/master).
 
 If you prefer to instead build a specific version of the Mumble server, you can use the `MUMBLE_VERSION` argument like this:
 ```bash
-$ docker build --build-arg MUMBLE_VERSION=v1.4.230 .
+$ docker build --target mumble --build-arg MUMBLE_VERSION=v1.4.230 .
 ```
 `MUMBLE_VERSION` can either be one of the [published tags](https://github.com/mumble-voip/mumble/tags) of the upstream repository or a commit hash of
 the respective commit to build.
+
+If you want to build a version of the docker image that supports automating certificate management via ACME, you have to specify another build target:
+
+```bash
+$ docker build --target mumble-acme .
+```
 
 Note that either way, only Mumble versions >= 1.4 can be built using this image. Mumble versions 1.3 and earlier are not compatible with the build
 process employed by this Docker image.
