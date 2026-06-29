@@ -56,7 +56,7 @@ log "Mumble startup might be delayed on the initial certificate request"
 # Renewal loop
 while true; do
 	log "Trying to request/renew the TLS certificate"
-	lego run "${LEGO_ARGS[@]}" --deploy-hook acme_install_cert...
+	lego run "${LEGO_ARGS[@]}" --deploy-hook acme_install_cert
 
 	log "Sleeping 12h before renewal check..."
 	sleep $((60 * 60 * 12))

@@ -58,20 +58,38 @@ jobs:
             - name: Make tags for registries
               run: |
                 TAG_ARRAY=()
+                TAG_ARRAY_ACME=()
                 for current in $PRE_TAGS; do
-                  TAG_ARRAY+=("mumblevoip/$current" "ghcr.io/mumble-voip/$current")
+                  TAG_ARRAY+=("mumblevoip/${current}" "ghcr.io/mumble-voip/${current}")
+                  TAG_ARRAY_ACME+=("mumblevoip/${current}-acme" "ghcr.io/mumble-voip/${current}-acme")
                 done
                 TAGS="$( IFS=","; echo "${TAG_ARRAY[*]}" )"
+                TAGS_ACME="$( IFS=","; echo "${TAG_ARRAY_ACME[*]}" )"
                 echo "TAGS=$TAGS" >> $GITHUB_ENV
+                echo "TAGS_ACME=$TAGS_ACME" >> $GITHUB_ENV
 
-            - name: Build and push
+            - name: Build and push (standard image)
               uses: docker/build-push-action@v7
               with:
                 context: .
+                target: mumble
                 platforms: ${{ inputs.platforms }}
                 push: ${{ inputs.publish }}
                 build-args: |
                     MUMBLE_VERSION=${{ inputs.mumble_version }}
                 tags: ${{ env.TAGS }}
+              env:
+                MUMBLE_VERSION: ${{ inputs.mumble_version }}
+
+            - name: Build and push (ACME image)
+              uses: docker/build-push-action@v7
+              with:
+                context: .
+                target: mumble-acme
+                platforms: ${{ inputs.platforms }}
+                push: ${{ inputs.publish }}
+                build-args: |
+                    MUMBLE_VERSION=${{ inputs.mumble_version }}
+                tags: ${{ env.TAGS_ACME }}
               env:
                 MUMBLE_VERSION: ${{ inputs.mumble_version }}

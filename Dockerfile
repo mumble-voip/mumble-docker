@@ -71,24 +71,33 @@ RUN /mumble/scripts/clone.sh \
 RUN git clone https://github.com/ncopa/su-exec.git /mumble/repo/su-exec \
     && cd /mumble/repo/su-exec && make
 
-FROM goacme/lego:latest AS lego
-FROM base
-
-COPY --from=lego /lego /usr/local/bin/lego
+FROM base AS mumble
+# Standard docker image with mumble as PID 1
 COPY --from=build /mumble/repo/build/mumble-server /usr/bin/mumble-server
 COPY --from=build /mumble/repo/default_config.ini /etc/mumble/bare_config.ini
 COPY --from=build --chmod=755 /mumble/repo/su-exec/su-exec /usr/local/bin/su-exec
 
+EXPOSE 64738/tcp 64738/udp
+COPY entrypoint.sh /entrypoint.sh
+
+VOLUME ["/data"]
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["/usr/bin/mumble-server"]
+
+FROM goacme/lego:latest AS lego
+# Import the docker image for ACME client lego to copy its main binary into the mumble image
+FROM mumble AS mumble-acme
+# Special docker image including an ACME client for automatic TLS certificate provisioning.
+# PID 1 is supervisord, which then launches mumble and the ACME scripts. Must be started as root!
+COPY --from=lego /lego /usr/local/bin/lego
 RUN apt-get update && apt-get install --no-install-recommends -y \
     supervisor \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-EXPOSE 64738/tcp 64738/udp
-COPY entrypoint.sh /entrypoint.sh
 COPY acme_install_cert.sh /usr/local/bin/acme_install_cert
 COPY acme_manage_cert.sh /usr/local/bin/acme_manage_cert
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-VOLUME ["/data"]
+# Unset parents entrypoint
+ENTRYPOINT []
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
