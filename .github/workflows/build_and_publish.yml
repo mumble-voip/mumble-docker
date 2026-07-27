@@ -49,11 +49,15 @@ jobs:
 
             - name: Configure target tags (with latest)
               if: ${{ inputs.update_latest }}
-              run: echo "PRE_TAGS=mumble-server:latest mumble-server:${{ inputs.mumble_version }} mumble-server:${{ inputs.mumble_version }}-${{ inputs.docker_version }}" >> $GITHUB_ENV
+              run: |
+                MUMBLE_VER="${{ inputs.mumble_version }}"
+                echo "PRE_TAGS=mumble-server:latest mumble-server:${MUMBLE_VER} mumble-server:${MUMBLE_VER%.*} mumble-server:${MUMBLE_VER}-${{ inputs.docker_version }}" >> $GITHUB_ENV
 
             - name: Configure target tags (without latest)
               if: ${{ ! inputs.update_latest }}
-              run: echo "PRE_TAGS=mumble-server:${{ inputs.mumble_version }} mumble-server:${{ inputs.mumble_version }}-${{ inputs.docker_version }}" >> $GITHUB_ENV
+              run: |
+                MUMBLE_VER="${{ inputs.mumble_version }}"
+                echo "PRE_TAGS=mumble-server:${MUMBLE_VER} mumble-server:${MUMBLE_VER%.*} mumble-server:${MUMBLE_VER}-${{ inputs.docker_version }}" >> $GITHUB_ENV
                 
             - name: Make tags for registries
               run: |
