@@ -68,8 +68,11 @@ RUN /mumble/scripts/clone.sh \
     && /mumble/scripts/build.sh \
     && /mumble/scripts/copy_one_of.sh ./scripts/murmur.ini ./auxiliary_files/mumble-server.ini default_config.ini
 
+# Pin su-exec so the image cannot pick up an unexpected upstream HEAD.
+ARG SU_EXEC_COMMIT=89c016e6e08749d583efdeda04b9f73e1218e253
 RUN git clone https://github.com/ncopa/su-exec.git /mumble/repo/su-exec \
-    && cd /mumble/repo/su-exec && make
+    && git -C /mumble/repo/su-exec checkout --detach "${SU_EXEC_COMMIT}" \
+    && make -C /mumble/repo/su-exec
 
 FROM base AS mumble
 # Standard docker image with mumble as PID 1

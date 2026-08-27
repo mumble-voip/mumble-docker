@@ -7,6 +7,13 @@ log()
 	echo "[mumble-cert-manager] $*"
 }
 
+# ACME_LEGO_CMD is documented as an alias for ACME_LEGO_ARGS (and is what
+# entrypoint.sh historically checked). Accept either so cert management and
+# Mumble startup stay in sync.
+if [[ -z "$ACME_LEGO_ARGS" && -n "$ACME_LEGO_CMD" ]]; then
+	ACME_LEGO_ARGS="$ACME_LEGO_CMD"
+fi
+
 if [[ -z "$ACME_DOMAIN" && -z "$ACME_LEGO_ARGS" ]]; then
 	log "No automatic certificate management configured. Goodbye."
 	sleep infinity # We just let the script hang forever so that supervisord does not put it in a restart loop
@@ -23,7 +30,10 @@ fi
 
 # Build a lego command if the user did not provide one
 if [[ -n "$ACME_LEGO_ARGS" ]]; then
-	LEGO_ARGS="$ACME_LEGO_ARGS"
+	# Word-split the user-supplied flag string into an argv array. Without this,
+	# `lego run "${LEGO_ARGS[@]}"` would pass the entire string as one argument.
+	# shellcheck disable=SC2206
+	LEGO_ARGS=($ACME_LEGO_ARGS)
 else
 	SERVER="${ACME_SERVER:-https://acme-v02.api.letsencrypt.org/directory}"
 	DOMAIN="${ACME_DOMAIN}"

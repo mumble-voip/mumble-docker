@@ -157,6 +157,7 @@ else
 	while read -r var; do
 		config_option="${option_for[$(normalize_name "$var")]}"
 		secret_file="/run/secrets/MUMBLE_CONFIG_$var"
+		value="$(cat "$secret_file")"
 		if [[ -z "$config_option" ]]; then
 			if [[ "$MUMBLE_ACCEPT_UNKNOWN_SETTINGS" = true ]]; then
 				log "[WARNING]: Unable to find config corresponding to container secret \"$secret_file\". Make sure that it is correctly spelled, using it as-is"
@@ -166,7 +167,7 @@ else
 				exit 1
 			fi
 		else
-			set_config "$config_option" "$(cat $secret_file)"
+			set_config "$config_option" "$value"
 		fi
 	done < <( ls /run/secrets 2> /dev/null | sed -n 's/^MUMBLE_CONFIG_//p' )
 
@@ -189,7 +190,7 @@ else
 	set_config "port" 64738 true
 	set_config "users" 100 true
 
-	if [[ -n "$ACME_DOMAIN" || -n "$ACME_LEGO_CMD" ]]; then
+	if [[ -n "$ACME_DOMAIN" || -n "$ACME_LEGO_CMD" || -n "$ACME_LEGO_ARGS" ]]; then
 		if array_contains "used_configs" "sslCert" || array_contains "used_configs" "sslKey"; then
 			log "[WARNING] Overwriting sslKey/sslCert config since automatic certificate management is enabled"
 		fi
@@ -229,7 +230,7 @@ if [[ "$(id -u)" = "0" ]] && [[ "${PUID}" != "0" ]] && [[ "${MUMBLE_CHOWN_DATA}"
 	chown -R ${PUID}:${PGID} /data
 fi
 
-if [[ -n "$ACME_DOMAIN" || -n "$ACME_LEGO_CMD" ]]; then
+if [[ -n "$ACME_DOMAIN" || -n "$ACME_LEGO_CMD" || -n "$ACME_LEGO_ARGS" ]]; then
 	while [[ ! -f "/data/acme/mumble.crt" ]]; do
 		log "Waiting for '/data/acme/mumble.crt' to be created"
 		sleep 20
