@@ -60,6 +60,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 ARG MUMBLE_VERSION=latest
 ARG MUMBLE_BUILD_NUMBER=""
 ARG MUMBLE_CMAKE_ARGS=""
+# renovate: datasource=github-tags depName=ncopa/su-exec
+ARG SU_EXEC_VERSION=v0.3
 
 # Clone the repo, build it and finally copy the default server ini file. Since this file may be at different locations and Docker
 # doesn't support conditional copies, we have to ensure that regardless of where the file is located in the repo, it will end
@@ -68,7 +70,7 @@ RUN /mumble/scripts/clone.sh \
     && /mumble/scripts/build.sh \
     && /mumble/scripts/copy_one_of.sh ./scripts/murmur.ini ./auxiliary_files/mumble-server.ini default_config.ini
 
-RUN git clone https://github.com/ncopa/su-exec.git /mumble/repo/su-exec \
+RUN git clone --branch "${SU_EXEC_VERSION}" https://github.com/ncopa/su-exec.git /mumble/repo/su-exec \
     && cd /mumble/repo/su-exec && make
 
 FROM base AS mumble
@@ -90,7 +92,7 @@ VOLUME ["/data"]
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/usr/bin/mumble-server"]
 
-FROM goacme/lego:latest AS lego
+FROM goacme/lego:v5.5 AS lego
 # Import the docker image for ACME client lego to copy its main binary into the mumble image
 FROM mumble AS mumble-acme
 # Special docker image including an ACME client for automatic TLS certificate provisioning.
