@@ -157,6 +157,7 @@ else
 	while read -r var; do
 		config_option="${option_for[$(normalize_name "$var")]}"
 		secret_file="/run/secrets/MUMBLE_CONFIG_$var"
+		value="$(cat "$secret_file")"
 		if [[ -z "$config_option" ]]; then
 			if [[ "$MUMBLE_ACCEPT_UNKNOWN_SETTINGS" = true ]]; then
 				log "[WARNING]: Unable to find config corresponding to container secret \"$secret_file\". Make sure that it is correctly spelled, using it as-is"
@@ -166,7 +167,7 @@ else
 				exit 1
 			fi
 		else
-			set_config "$config_option" "$(cat $secret_file)"
+			set_config "$config_option" "$value"
 		fi
 	done < <( ls /run/secrets 2> /dev/null | sed -n 's/^MUMBLE_CONFIG_//p' )
 

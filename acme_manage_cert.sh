@@ -23,7 +23,7 @@ fi
 
 # Build a lego command if the user did not provide one
 if [[ -n "$ACME_LEGO_ARGS" ]]; then
-	LEGO_ARGS="$ACME_LEGO_ARGS"
+	read -r -a LEGO_ARGS <<< "$ACME_LEGO_ARGS"
 else
 	SERVER="${ACME_SERVER:-https://acme-v02.api.letsencrypt.org/directory}"
 	DOMAIN="${ACME_DOMAIN}"
