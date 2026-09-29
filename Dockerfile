@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 AS base
+FROM ubuntu:26.04 AS base
 
 ADD ./scripts/* /mumble/scripts/
 WORKDIR /mumble/scripts
