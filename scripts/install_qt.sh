@@ -6,13 +6,13 @@ set -x
 if [[ "$QT_VERSION" = 6 ]]; then
 	QT_PACKAGES=(\
 		libqt6core6t64 \
-		libqt6network6t64 \
-		libqt6sql6t64 \
+		libqt6network6 \
+		libqt6sql6 \
 		libqt6sql6-mysql \
 		libqt6sql6-psql \
 		libqt6sql6-sqlite \
-		libqt6xml6t64 \
-		libqt6dbus6t64 \
+		libqt6xml6 \
+		libqt6dbus6 \
 	)
 elif [[ "$QT_VERSION" = 5 ]]; then
 	QT_PACKAGES=(\
