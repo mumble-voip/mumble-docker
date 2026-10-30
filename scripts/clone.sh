@@ -13,5 +13,5 @@ if [[ -n "$MUMBLE_VERSION" && ! "$MUMBLE_VERSION" == "latest" ]]; then
 	git checkout "$MUMBLE_VERSION"
 fi
 
-git submodule update --init
-git submodule update --depth 1
+git submodule init
+git submodule update --depth 1 --recursive
