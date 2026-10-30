@@ -92,7 +92,7 @@ VOLUME ["/data"]
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/usr/bin/mumble-server"]
 
-FROM goacme/lego:v5.5 AS lego
+FROM goacme/lego:v5.6 AS lego
 # Import the docker image for ACME client lego to copy its main binary into the mumble image
 FROM mumble AS mumble-acme
 # Special docker image including an ACME client for automatic TLS certificate provisioning.
