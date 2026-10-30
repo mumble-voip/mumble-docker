@@ -30,6 +30,10 @@ else
 	fi
 fi
 
+if [[ -f "./cmake/mumble_dependency_provider.cmake" ]]; then
+	MUMBLE_CMAKE_ARGS="$MUMBLE_CMAKE_ARGS -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=cmake/mumble_dependency_provider.cmake"
+fi
+
 cmake \
 	-B build \
 	-S .\
