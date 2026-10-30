@@ -6,8 +6,6 @@ set -x
 BUILD_NUMBER_SCRIPT="/mumble/repo/scripts/mumble-build-number.py"
 VERSION_SCRIPT="/mumble/repo/scripts/mumble-version.py"
 
-mkdir build && cd build
-
 buildNumber=0
 if [[ ! -z "$MUMBLE_BUILD_NUMBER" ]]; then
 	buildNumber=$MUMBLE_BUILD_NUMBER
@@ -32,7 +30,13 @@ else
 	fi
 fi
 
+if [[ -f "./cmake/mumble_dependency_provider.cmake" ]]; then
+	MUMBLE_CMAKE_ARGS="$MUMBLE_CMAKE_ARGS -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=cmake/mumble_dependency_provider.cmake"
+fi
+
 cmake \
+	-B build \
+	-S .\
 	-DCMAKE_BUILD_TYPE=Release \
 	-DBUILD_NUMBER=$buildNumber \
 	-Dclient=OFF \
@@ -42,11 +46,10 @@ cmake \
 	-Dwarnings-as-errors=OFF \
 	-Dzeroconf=OFF \
 	-DCMAKE_UNITY_BUILD=ON \
-	$MUMBLE_CMAKE_ARGS \
-	..
+	$MUMBLE_CMAKE_ARGS
 
-cmake --build . -j $(nproc)
+cmake --build build -j $(nproc)
 
 TEST_TIMEOUT=600 # seconds
 export QTEST_FUNCTION_TIMEOUT="$(( $TEST_TIMEOUT * 1000 ))" # milliseconds
-ctest --timeout $TEST_TIMEOUT --output-on-failure . -j $(nproc)
+ctest build --timeout $TEST_TIMEOUT --output-on-failure . -j $(nproc)

@@ -3,15 +3,12 @@
 set -e
 set -x
 
-git clone --filter=tree:0 https://github.com/mumble-voip/mumble/ /mumble/repo
-
-cd /mumble/repo
-
-git config advice.detachedHead false
-
+BRANCH_ARGS=()
 if [[ -n "$MUMBLE_VERSION" && ! "$MUMBLE_VERSION" == "latest" ]]; then
-	git checkout "$MUMBLE_VERSION"
+	# --branch also accepts tags. Selecting the version here (instead of
+	# checking it out afterwards) makes sure the submodules are cloned at the
+	# commits pinned by that version.
+	BRANCH_ARGS=(--branch "$MUMBLE_VERSION")
 fi
 
-git submodule update --init
-git submodule update --depth 1
+git clone --depth 1 --recurse-submodules --shallow-submodules -c advice.detachedHead=false "${BRANCH_ARGS[@]}" https://github.com/mumble-voip/mumble/ /mumble/repo
