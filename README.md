@@ -199,6 +199,9 @@ $ docker build --target mumble --build-arg MUMBLE_VERSION=v1.4.230 .
 `MUMBLE_VERSION` can either be one of the [published tags](https://github.com/mumble-voip/mumble/tags) of the upstream repository or a commit hash of
 the respective commit to build.
 
+The build number (the `Z` in `vX.Y.Z`) is always cross-checked against the Mumble build number servers. If it is `0`, the fetched number is used. If the servers
+can't be reached, the given number is used as is. If a non-zero number disagrees with the fetched one, the build fails.
+
 If you want to build a version of the docker image that supports automating certificate management via ACME, you have to specify another build target:
 
 ```bash
